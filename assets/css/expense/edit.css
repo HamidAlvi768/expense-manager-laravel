@@ -1,0 +1,56 @@
+/* Media Query for Mobile and Tablet Devices */
+@media (max-width: 768px) {
+    /* Expense Items Table */
+    #expenseItemsTable {
+        width: 100%; /* Ensure the table takes full width */
+        table-layout: fixed; /* Prevent overflow by ensuring equal width for each column */
+        overflow-x: auto; /* Enable horizontal scroll if the table overflows */
+    }
+
+    #expenseItemsTable th, #expenseItemsTable td {
+        font-size: 0.875rem; /* Smaller text in the table */
+        padding: 8px;
+        white-space: nowrap; /* Prevent text wrapping in table cells */
+        overflow: hidden; /* Hide overflow text */
+        text-overflow: ellipsis; /* Add ellipsis for overflowed text */
+    }
+
+    /* Adjust the table container for smaller screens */
+    .table-responsive {
+        overflow-x: auto; /* Allow horizontal scrolling if needed */
+    }
+
+    /* Make the Add and Remove Row buttons smaller on mobile */
+    #expenseItemsTable td .add-row, #expenseItemsTable td .remove-row {
+        font-size: 0.625rem; /* Smaller font for the buttons */
+        padding: 4px 6px; /* Smaller padding for the buttons */
+    }
+
+    /* Form Fields */
+    #expenseForm .form-group {
+        margin-bottom: 1rem; /* Add margin between form fields */
+    }
+
+    /* Form Inputs (select, input fields) */
+    #expenseForm select, #expenseForm input {
+        font-size: 0.875rem; /* Smaller font size for form inputs */
+        padding: 0.5rem; /* Adjust padding for smaller screens */
+    }
+
+    /* Adjust the submit button for mobile */
+    .form-group.text-right button {
+        font-size: 0.875rem; /* Smaller font for the submit button */
+        padding: 0.5rem 1rem; /* Adjust padding for smaller screens */
+    }
+
+    /* Adjust Cancel Button */
+    .form-group.text-right a {
+        font-size: 0.875rem; /* Smaller font for cancel button */
+        padding: 0.5rem 1rem; /* Adjust padding */
+    }
+
+    /* Adjust Card Body Layout for smaller screens */
+    .card-body {
+        padding: 1rem; /* Reduce padding in the card body for mobile */
+    }
+}

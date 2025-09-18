@@ -1,0 +1,68 @@
+/* Media Query for Mobile and Tablet Devices */
+@media (max-width: 768px) {
+    /* Adjust Card Title */
+    .card-title {
+        font-size: 1.5rem; /* Reduce the font size of the title */
+    }
+
+    /* Adjust Breadcrumb Font Size */
+    .breadcrumb {
+        font-size: 0.875rem; /* Smaller breadcrumb font size */
+    }
+
+    /* Adjust Card Header Padding */
+    .card-header {
+        padding: 10px 15px;
+    }
+
+    /* Adjust Card Body Padding */
+    .card-body {
+        padding: 15px;
+    }
+
+    /* Adjust Row for Account and Date Information */
+    .row.mb-4 {
+        align-items: flex-start;
+    }
+
+    /* Ensure columns take full width on smaller screens */
+    .col-md-6, .col-6 {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    /* Adjust Table for Smaller Screens */
+    .table-responsive {
+        margin-top: 20px;
+    }
+
+    .table {
+        font-size: 0.875rem; /* Slightly smaller table font size */
+    }
+
+    .table th, .table td {
+        padding: 8px; /* Reduce padding in the table */
+    }
+
+    .table td {
+        text-align: center; /* Center align the table cells */
+    }
+
+    /* Adjust the Edit Button */
+    .card-tools a {
+        padding: 8px 12px;
+        font-size: 0.875rem; /* Smaller font size for the button */
+    }
+
+    /* Adjust Font Size for Total Row */
+    .font-weight-bold {
+        font-size: 1rem; /* Slightly smaller font for total row */
+    }
+}
+
+/* Ensuring Title and Date stay aligned for all screen sizes */
+.row.mb-4 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}

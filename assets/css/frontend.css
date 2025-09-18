@@ -1,0 +1,48 @@
+#custom-header-nav-item{
+    margin: 0 16px;color: #fff;
+    background: #400082;
+    border-color: #400082;
+}
+
+.login-page {
+    background: url("../images/login-back.jpg") repeat;
+    background-size:cover; /* Ensure the background image covers the element */ /* Remove padding */
+
+}
+
+.login-page .table td, .table th {
+    padding: 0.60em;
+    cursor: pointer;
+}
+
+.login-page .login-box {
+    margin-top: 50px;
+}
+
+.identColor {
+    color: #000000 !important;
+}
+@media (max-width: 768px) {
+    .login-page {
+        background: url("../images/login-back-mobile.jpg") no-repeat center center fixed; /* Optional mobile-specific background */
+        background-size: cover;
+    }
+
+
+    .card-header {
+        font-size: 1.5rem; /* Adjust font size for header */
+    }
+
+    .card-body {
+        padding: 15px; /* Reduce padding for smaller screens */
+    }
+    .login-box{
+        margin-bottom: 33%;
+    }
+
+
+
+    .social-auth-links button {
+        font-size: 1rem; /* Adjust button font size */
+    }
+}

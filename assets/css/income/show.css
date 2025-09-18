@@ -1,0 +1,58 @@
+@media (max-width: 768px) {
+    .card-title {
+        font-size: 1.5rem; /* Reduce the font size of the title */
+    }
+
+    .breadcrumb {
+        font-size: 0.875rem; /* Smaller breadcrumb font size */
+    }
+
+    .card-header {
+        padding: 10px 15px;
+    }
+
+    .card-body {
+        padding: 15px;
+    }
+
+    .row.mb-4 {
+        align-items: flex-start;
+    }
+
+    .col-md-6, .col-6 {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .table-responsive {
+        margin-top: 20px;
+    }
+
+    .table {
+        font-size: 0.875rem; /* Slightly smaller table font size */
+    }
+
+    .table th, .table td {
+        padding: 8px; /* Reduce padding in the table */
+    }
+
+    .table td {
+        text-align: center;
+    }
+
+    .card-tools a {
+        padding: 8px 12px;
+        font-size: 0.875rem;
+    }
+
+    .font-weight-bold {
+        font-size: 1rem;
+    }
+}
+
+/* Ensuring Title and Date stay aligned for all screen sizes */
+.row.mb-4 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}

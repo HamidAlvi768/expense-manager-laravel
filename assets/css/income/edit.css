@@ -1,0 +1,27 @@
+/* Media Query for Mobile and Tablet Devices */
+@media (max-width: 768px) {
+    /* Income Items Table */
+    #incomeItemsTable {
+        width: 100%; /* Ensure the table takes full width */
+        table-layout: fixed; /* Prevent overflow by ensuring equal width for each column */
+        overflow-x: auto; /* Enable horizontal scroll if the table overflows */
+    }
+
+    #incomeItemsTable th, #incomeItemsTable td {
+        font-size: 0.875rem; /* Smaller text in the table */
+        padding: 8px;
+        white-space: nowrap; /* Prevent text wrapping in table cells */
+        overflow: hidden; /* Hide overflow text */
+        text-overflow: ellipsis; /* Add ellipsis for overflowed text */
+    }
+
+    /* Adjust the table container for smaller screens */
+    .table-responsive {
+        overflow-x: auto; /* Allow horizontal scrolling if needed */
+    }
+
+    #incomeItemsTable td .add-row, #incomeItemsTable td .remove-row {
+        font-size: 0.625rem; /* Smaller font for the buttons */
+        padding: 4px 6px; /* Smaller padding for the buttons */
+    }
+}
