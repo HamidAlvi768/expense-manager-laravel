@@ -22,7 +22,6 @@ class TransferController extends Controller
         if ($request->export) {
             return $this->doExport($request);
         }
-
         $transfers = $this->filter($request)
             ->with(['fromAccount', 'toAccount', 'user'])
             ->orderBy('id', 'desc')
@@ -32,14 +31,14 @@ class TransferController extends Controller
 
         $total = $accounts->sum('transfer_amount');
 
-        return view('transfer.index', compact('transfers', 'accounts', 'total'));
+        return view('transfer.index', compact('transfers','accounts','total'));
     }
-
     public function doExport(Request $request)
     {
-        $transfers = $this->filter($request)
             ->with(['user', 'fromAccount', 'toAccount'])
             ->get();
+
+    
 
         // Prepare data for export
         $data = $transfers->map(function ($transfer) {
@@ -53,36 +52,34 @@ class TransferController extends Controller
                 'Transfer Date' => $transfer->transfer_date,
             ];
         })->toArray();
-
+    
         // Define headers for the export
         $headers = ['ID', 'User Name', 'From Account', 'To Account', 'Amount', 'Notes', 'Transfer Date'];
-
+    
         return Excel::download(new GenericExport($data, $headers), 'transfers.xlsx');
     }
-
+    
     private function filter(Request $request)
     {
         $query = Transfer::query();
-
+    
         // Filter by "From Account"
         if ($request->from_account) {
             $query->where('from_account_id', $request->from_account);
         }
-
+    
         // Filter by "To Account"
         if ($request->to_account) {
             $query->where('to_account_id', $request->to_account);
         }
-
+    
         // Filter by "Amount From" (Minimum Transfer Amount)
         if ($request->amount_from) {
             $query->where('transfer_amount', '>=', $request->amount_from);
         }
 
-        // Filter by "Amount To" (Maximum Transfer Amount)
-        if ($request->amount_to) {
-            $query->where('transfer_amount', '<=', $request->amount_to);
-        }
+    
+
 
         // Filter by Date Range
         if ($request->start_date && $request->end_date) {
@@ -100,17 +97,17 @@ class TransferController extends Controller
             $query->whereDate('transfer_date', $endDate);
         }
         $query->where('user_id', auth()->id());
-
+    
         return $query;
     }
-
-
-
+    
+    
+    
     public function create()
     {
-        $fromAccounts = Account::where('user_id', auth()->id())->select('id', 'account_title','balance')->orderBy('id', 'desc')->get();
+        $fromAccounts = Account::where('user_id', auth()->id())->select('id', 'account_title')->orderBy('id', 'desc')->get();
         $toAccounts = Account::where('user_id', auth()->id())->select('id', 'account_title')->orderBy('id', 'desc')->get();
-        return view('transfer.create', compact('fromAccounts', 'toAccounts'));
+        return view('transfer.create', compact('fromAccounts','toAccounts'));
     }
 
     /**
@@ -121,54 +118,65 @@ class TransferController extends Controller
      */
 
 
-    public function store(Request $request)
-    {
-        $this->validation($request);
-        $data = $request->only(['to_account_id', 'from_account_id', 'transfer_amount', 'notes', 'description', 'transfer_date']);
-
-        $fromAccount = Account::findOrFail($data['from_account_id']);
-        $toAccount = Account::findOrFail($data['to_account_id']);
-
-        DB::transaction(function () use ($data, $fromAccount, $toAccount, &$transfer) {
-            $data['user_id'] = auth()->id();
-            $data['created_by'] = auth()->id();
-            $transfer = Transfer::create($data);
-
-            $fromAccount->increment('withdrawal', $data['transfer_amount']);
-            $fromAccount->decrement('balance', $data['transfer_amount']);
-            $fromAccount->decrement('total', $data['transfer_amount']);
-
-            $toAccount->increment('deposit', $data['transfer_amount']);
-            $toAccount->increment('balance', $data['transfer_amount']);
-            $toAccount->increment('total', $data['transfer_amount']);
-
-            Transaction::create([
-                'account_id' => $fromAccount->id,
-                'transaction_type' => 'transfer',
-                'amount' => $data['transfer_amount'],
-                'description' => 'Transfer to account: ' . $toAccount->account_title,
-                'reference_id' => $transfer->id,
-                'reference_type' => Transfer::class,
-                'created_by' => auth()->id(),
-            ]);
-
-            Transaction::create([
-                'account_id' => $toAccount->id,
-                'transaction_type' => 'transfer',
-                'amount' => $data['transfer_amount'],
-                'description' => 'Transfer from account: ' . $fromAccount->account_title,
-                'reference_id' => $transfer->id,
-                'reference_type' => Transfer::class,
-                'created_by' => auth()->id(),
-            ]);
-        });
 
 
+public function store(Request $request)
+{
+    $this->validation($request);
+    $data = $request->only(['to_account_id','from_account_id', 'transfer_amount', 'notes', 'description','transfer_date']);
 
-        return redirect()->route('transfers.edit', $transfer->id)
-            ->with('success', trans('Transfer Added Successfully'));
-    }
+    $fromAccount = Account::findOrFail($data['from_account_id']);
+    $toAccount = Account::findOrFail($data['to_account_id']);
 
+    DB::transaction(function () use ($data, $fromAccount, $toAccount, &$transfer) {
+        $data['user_id'] = auth()->id(); 
+        $data['created_by'] = auth()->id(); 
+        $transfer = Transfer::create($data);
+
+        $fromAccount->increment('withdrawal', $data['transfer_amount']);
+        $fromAccount->decrement('balance', $data['transfer_amount']);
+        $fromAccount->decrement('total', $data['transfer_amount']);
+
+        $toAccount->increment('deposit', $data['transfer_amount']);
+        $toAccount->increment('balance', $data['transfer_amount']);
+        $toAccount->increment('total', $data['transfer_amount']);
+
+        Transaction::create([
+            'account_id' => $fromAccount->id,
+            'transaction_type' => 'transfer',
+            'amount' => $data['transfer_amount'],
+            'description' => 'Transfer to account: ' . $toAccount->account_title,
+            'reference_id' => $transfer->id,
+            'reference_type' => Transfer::class,
+            'created_by' => auth()->id(),
+        ]);
+
+        Transaction::create([
+            'account_id' => $toAccount->id,
+            'transaction_type' => 'transfer',
+            'amount' => $data['transfer_amount'],
+            'description' => 'Transfer from account: ' . $fromAccount->account_title,
+            'reference_id' => $transfer->id,
+            'reference_type' => Transfer::class,
+            'created_by' => auth()->id(),
+        ]);
+
+    });
+
+
+
+
+<<<<<<< HEAD
+
+    return redirect()->route('transfers.edit', $transfer->id)
+        ->with('success', trans('Transfer Added Successfully'));
+}
+
+     
+
+
+=======
+>>>>>>> 59200bb (Initial commit with expense manager code)
     /**
      * Display the specified resource.
      *
@@ -177,7 +185,11 @@ class TransferController extends Controller
      */
     public function show(Transfer $transfer)
     {
+<<<<<<< HEAD
+        return view('transfer.show', compact('transfer'));    
+=======
         return view('transfer.show', compact('transfer'));
+>>>>>>> 59200bb (Initial commit with expense manager code)
     }
 
     public function edit(Transfer $transfer)
@@ -185,7 +197,11 @@ class TransferController extends Controller
         $fromAccounts = Account::where('user_id', auth()->id())->select('id', 'account_title')->orderBy('id', 'desc')->get();
         $toAccounts = Account::where('user_id', auth()->id())->select('id', 'account_title')->orderBy('id', 'desc')->get();
 
+<<<<<<< HEAD
+        return view('transfer.edit', compact('transfer','toAccounts','fromAccounts'));
+=======
         return view('transfer.edit', compact('transfer', 'toAccounts', 'fromAccounts'));
+>>>>>>> 59200bb (Initial commit with expense manager code)
     }
 
     /**
@@ -198,8 +214,13 @@ class TransferController extends Controller
     public function update(Request $request, Transfer $transfer)
     {
         $this->validation($request, $transfer->user_id);
+<<<<<<< HEAD
+        $data = $request->only(['to_account_id','from_account_id', 'transfer_amount', 'notes', 'description','transfer_date']);
+    
+=======
         $data = $request->only(['to_account_id', 'from_account_id', 'transfer_amount', 'notes', 'description', 'transfer_date']);
 
+>>>>>>> 59200bb (Initial commit with expense manager code)
         $fromAccount = Account::findOrFail($data['from_account_id']);
         $toAccount = Account::findOrFail($data['to_account_id']);
 
@@ -217,6 +238,16 @@ class TransferController extends Controller
             $toAccount->increment('balance', $difference);
             $toAccount->increment('total', $difference);
 
+<<<<<<< HEAD
+            $transfer->updated_by = auth()->id(); 
+            $transfer->update($data);
+
+            $fromTransaction = Transaction::where('account_id', $fromAccount->id)
+            ->where('reference_id', $transfer->id)
+            ->where('reference_type', Transfer::class)
+            ->firstOrFail();
+        
+=======
             $transfer->updated_by = auth()->id();
             $transfer->update($data);
 
@@ -225,6 +256,7 @@ class TransferController extends Controller
                 ->where('reference_type', Transfer::class)
                 ->firstOrFail();
 
+>>>>>>> 59200bb (Initial commit with expense manager code)
             $fromTransaction->update([
                 'amount' => $data['transfer_amount'],
                 'description' => 'Transfer to account: ' . $toAccount->account_title,
@@ -233,10 +265,17 @@ class TransferController extends Controller
 
             // Update the transaction for the 'toAccount'
             $toTransaction = Transaction::where('account_id', $toAccount->id)
+<<<<<<< HEAD
+            ->where('reference_id', $transfer->id)
+            ->where('reference_type', Transfer::class)
+            ->firstOrFail();
+        
+=======
                 ->where('reference_id', $transfer->id)
                 ->where('reference_type', Transfer::class)
                 ->firstOrFail();
 
+>>>>>>> 59200bb (Initial commit with expense manager code)
             $toTransaction->update([
                 'amount' => $data['transfer_amount'],
                 'description' => 'Transfer from account: ' . $fromAccount->account_title,
@@ -261,21 +300,39 @@ class TransferController extends Controller
             // Fetch accounts
             $fromAccount = Account::findOrFail($transfer->from_account_id);
             $toAccount = Account::findOrFail($transfer->to_account_id);
-
+    
             // Revert changes to Account A (from_account)
             $fromAccount->decrement('withdrawal', $transfer->transfer_amount);
             $fromAccount->increment('balance', $transfer->transfer_amount);
             $fromAccount->increment('total', $transfer->transfer_amount);
 
-            // Revert changes to Account B (to_account)
-            $toAccount->decrement('deposit', $transfer->transfer_amount);
-            $toAccount->decrement('balance', $transfer->transfer_amount);
-            $toAccount->decrement('total', $transfer->transfer_amount);
+    
 
             // Delete related transactions
             Transaction::where('reference_id', $transfer->id)
                 ->where('reference_type', Transfer::class)
                 ->delete();
+<<<<<<< HEAD
+    
+            // Delete the transfer record
+            $transfer->delete();
+        });
+    
+        return redirect()->route('transfers.index')
+            ->with('success', trans('Transfer Deleted Successfully'));
+    }
+    
+
+    private function validation(Request $request, $id = 0)
+    {
+    
+        $request->validate([
+            'from_account_id' => 'required|exists:accounts,id',
+            'to_account_id' => 'required|exists:accounts,id',
+            'transfer_amount' => 'required','integar',
+            'notes' => 'nullable', 'string',
+            'description' => 'nullable', 'string',
+=======
 
             // Delete the transfer record
             $transfer->delete();
@@ -298,8 +355,13 @@ class TransferController extends Controller
             'string',
             'description' => 'nullable',
             'string',
+>>>>>>> 59200bb (Initial commit with expense manager code)
             'transfer_date' => 'required|date'
 
         ]);
     }
+<<<<<<< HEAD
+
+=======
+>>>>>>> 59200bb (Initial commit with expense manager code)
 }

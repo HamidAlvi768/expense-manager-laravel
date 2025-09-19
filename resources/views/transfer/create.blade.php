@@ -1,15 +1,17 @@
 @extends('layouts.layout')
 
 @section('content')
-<style>
-    .errors-ul {
-    margin: 40px 0 0;
-}
+    <style>
+        .errors-ul {
+            margin: 40px 0 0;
+        }
 
-#parsley-id-19, #parsley-id-21, #parsley-id-23 {
-    margin-top: 2.5rem;
-}
-</style>
+        #parsley-id-19,
+        #parsley-id-21,
+        #parsley-id-23 {
+            margin-top: 2.5rem;
+        }
+    </style>
     <section class="content-header">
         <div class="container-fluid">
             <div class="row">
@@ -35,8 +37,17 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-info">
+                {{-- <div class="card-header bg-info ">
                     <h3 class="card-title">@lang('Add Transfer ')</h3>
+                    <span id='accountBalance' class="badge badge-light ml-2"></span>
+
+                </div> --}}
+                <div class="card-header bg-info d-flex align-items-center ">
+                    <h3 class="card-title ">@lang('Add Transfer')</h3>
+                    <small class="text-light d-block ml-4">You can transfer up to this amount</small>
+                    <span id='accountBalance' class="badge badge-light ml-2 p-1" style="font-size:1rem;">
+                        --
+                    </span>
                 </div>
                 <div class="card-body">
                     <form id="transferForm" data-parsley-validate class="form-material form-horizontal"
@@ -50,12 +61,15 @@
                                         <div class="input-group-prepend">
                                             <span class="input-group-text"><i class="fas fa-user"></i></span>
                                         </div>
-                                        <select name="from_account_id" id="from_account_id" class="form-control select2"  required data-parsley-required-message="Please Select a Account">
-                                            <option value="" disabled {{ old('from_account_id') ? '' : 'selected' }}>Select Account</option>
+                                        <select name="from_account_id" id="from_account_id" class="form-control select2"
+                                            required data-parsley-required-message="Please Select a Account">
+                                            <option value="" disabled {{ old('from_account_id') ? '' : 'selected' }}>Select
+                                                Account</option>
                                             @foreach ($fromAccounts as $account)
-                                                <option value="{{ $account->id }}" {{ old('from_account_id') == $account->id ? 'selected' : '' }}>
-                                                    {{ $account->account_title }}
-                                                </option>
+                                                                                <option value="{{ $account->id }}" {{ old('from_account_id') == $account->id ?
+                                                'selected' : ''  }} data-balance="{{ $account->balance }}">
+                                                                                    {{ $account->account_title }}
+                                                                                </option>
                                             @endforeach
                                         </select>
                                         @error('from_account_id')
@@ -73,8 +87,10 @@
                                         <div class="input-group-prepend">
                                             <span class="input-group-text"><i class="fas fa-user"></i></span>
                                         </div>
-                                        <select name="to_account_id" id="to_account_id" class="form-control select2"  required data-parsley-required-message="Please Select a Account">
-                                            <option value="" disabled {{ old('to_account_id') ? '' : 'selected' }}>Select Account</option>
+                                        <select name="to_account_id" id="to_account_id" class="form-control select2"
+                                            required data-parsley-required-message="Please Select a Account">
+                                            <option value="" disabled {{ old('to_account_id') ? '' : 'selected' }}>Select
+                                                Account</option>
                                             @foreach ($toAccounts as $account)
                                                 <option value="{{ $account->id }}" {{ old('to_account_id') == $account->id ? 'selected' : '' }}>
                                                     {{ $account->account_title }}
@@ -96,7 +112,8 @@
                                         <div class="input-group-prepend">
                                             <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
                                         </div>
-                                        <input type="number" id="transfer_amount" name="transfer_amount" value="{{ old('transfer_amount') }}"
+                                        <input type="number" id="transfer_amount" name="transfer_amount"
+                                            value="{{ old('transfer_amount') }}"
                                             class="form-control @error('transfer_amount') is-invalid @enderror"
                                             placeholder="@lang('1000.0')" step="1" min="0" required>
                                         @error('transfer_amount')
@@ -114,8 +131,9 @@
                                         <div class="input-group-prepend">
                                             <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
                                         </div>
-                                        <input type="date" id="transfer_date" name="transfer_date" value="{{ old('transfer_date', now()->format('Y-m-d')) }}" 
-                                        class="form-control @error('transfer_date') is-invalid @enderror" required>
+                                        <input type="date" id="transfer_date" name="transfer_date"
+                                            value="{{ old('transfer_date', now()->format('Y-m-d')) }}"
+                                            class="form-control @error('transfer_date') is-invalid @enderror" required>
                                         @error('transfer_date')
                                             <div class="invalid-feedback">
                                                 {{ $message }}
@@ -129,7 +147,8 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="description">@lang('Description')</label>
-                                    <textarea name="description" id="description" class="form-control @error('description') is-invalid @enderror" rows="4"
+                                    <textarea name="description" id="description"
+                                        class="form-control @error('description') is-invalid @enderror" rows="4"
                                         placeholder="@lang('Description')">{{ old('description') }}</textarea>
                                     @error('description')
                                         <div class="invalid-feedback">
@@ -158,6 +177,20 @@
         </div>
     </div>
     <script>
-        var extraUlClass="errors-ul";
+        var extraUlClass = "errors-ul";
     </script>
 @endsection
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let dropdown = document.getElementById("from_account_id");
+        let balanceSpan = document.getElementById("accountBalance");
+
+        // Set initial balance on page load
+        $(dropdown).on('change', function () {
+            let selectedOption = dropdown.options[dropdown.selectedIndex];
+            let balance = selectedOption.getAttribute("data-balance");
+            balanceSpan.textContent = balance ? balance : "--";
+        });
+    });
+
+</script>

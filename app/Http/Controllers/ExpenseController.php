@@ -107,7 +107,7 @@ class ExpenseController extends Controller
 
     public function create()
     {
-        $expenseCategories = DdExpenseCategory::where('status', '1')->select('id', 'title')->orderBy('id', 'desc')->get();
+        $expenseCategories = DdExpenseCategory::where('status', '1')->select('id', 'title')->orderBy('title', 'asc')->get();
         // $accounts = Account::where('user_id', auth()->id())->select('id', 'account_title')->orderBy('id', 'desc')->get();
         $accounts = Account::where('user_id', auth()->id())
             ->select('id', 'account_title')
@@ -116,7 +116,9 @@ class ExpenseController extends Controller
 
         // Fetch user's thresholds
         $userId = auth()->id();
-        $thresholds = ExpenseCategoryThreshold::where('user_id', $userId)->get()->keyBy('expense_category_id');
+        $thresholds = ExpenseCategoryThreshold::where('user_id', $userId)
+            ->orderBy('expense_category_id', 'asc')->get()->keyBy('expense_category_id')->sortKeys()
+            ->values();
         return view('expense.create', compact('expenseCategories', 'accounts', 'thresholds'));
     }
 

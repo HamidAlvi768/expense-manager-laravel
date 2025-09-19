@@ -31,10 +31,6 @@
             </div>
         </div>
     </section>
-<<<<<<< HEAD
-
-=======
->>>>>>> 59200bb (Initial commit with expense manager code)
     <div class="row">
         <div class="col-12">
             <div class="card">
