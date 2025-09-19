@@ -13,6 +13,7 @@ use App\Models\Transaction;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ExceptionOccurred;
+
 class AccountController extends Controller
 {
 
@@ -125,6 +126,7 @@ class AccountController extends Controller
     public function edit(Account $account)
     {
         $accountTypes = DdAccountType::where('status', '1')->select('id', 'title')->orderBy('id', 'desc')->get();
+
         return view('accounts.edit', compact('account', 'accountTypes'));
     }
 

@@ -23,15 +23,15 @@ class ExpenseController extends Controller
         if ($request->export) {
             return $this->doExport($request);
         }
-    
+
         $expenseQuery = $this->filter($request)->with(['account', 'expenseCategory']);
-    
+
         // Sum the amounts for the filtered income items
         $total = $expenseQuery->sum('amount');
-    
+
         // Paginate the income items
         $expenses = $expenseQuery->orderBy('expense_date', 'desc')->paginate(10);
-        $expenseCategories = DdExpenseCategory::where('status','1')->get(); // Fetch categories
+        $expenseCategories = DdExpenseCategory::where('status', '1')->get(); // Fetch categories
         // Get only the categories used in the current page of incomes
         $usedCategoryIds = $expenses->pluck('expense_category_id')->unique();
         $usedCategories = DdExpenseCategory::whereIn('id', $usedCategoryIds)->get();
@@ -41,14 +41,14 @@ class ExpenseController extends Controller
 
         $accounts = Account::where('user_id', auth()->id())->get();
 
-        return view('expense.index', compact('expenses', 'total', 'expenseCategories','accounts','categoryColors','usedCategories'));
+        return view('expense.index', compact('expenses', 'total', 'expenseCategories', 'accounts', 'categoryColors', 'usedCategories'));
     }
 
     public function doExport(Request $request)
     {
         // Fetch filtered incomes with eager-loaded relationships
         $expenses = $this->filter($request)->with(['account', 'expenseCategory'])->get();
-    
+
         // Prepare data for export
         $data = $expenses->map(function ($expense) {
             return [
@@ -60,31 +60,31 @@ class ExpenseController extends Controller
                 'Date' => $expense->expense_date ?? "-",
             ];
         })->toArray();
-    
+
         // Define headers for the export
         $headers = ['ID', 'Account', 'Category', 'Description', 'Amount', 'Date'];
-    
+
         return Excel::download(new GenericExport($data, $headers), 'expenses.xlsx');
     }
     private function filter(Request $request)
     {
         $query = Expense::where('user_id', auth()->id());
-    
+
         // Filter by account
         if ($request->account_id) {
             $query->where('account_id', $request->account_id);
         }
-    
+
         // Filter by expense category
         if ($request->expense_category_id) {
             $query->where('expense_category_id', $request->expense_category_id);
         }
-    
+
         // Filter by amount (partial match)
         if ($request->amount) {
             $query->where('amount', 'like', '%' . $request->amount . '%');
         }
-    
+
         // Filter by date range
         if ($request->start_date && $request->end_date) {
             // If both start_date and end_date are provided
@@ -100,20 +100,24 @@ class ExpenseController extends Controller
             $endDate = Carbon::parse($request->end_date)->startOfDay();
             $query->whereDate('expense_date', $endDate);
         }
-    
+
         return $query;
     }
-    
-    
+
+
     public function create()
     {
-        $expenseCategories = DdExpenseCategory::where('status','1')->select('id', 'title')->orderBy('id', 'desc')->get();
-        $accounts = Account::where('user_id', auth()->id())->select('id', 'account_title')->orderBy('id', 'desc')->get();
+        $expenseCategories = DdExpenseCategory::where('status', '1')->select('id', 'title')->orderBy('id', 'desc')->get();
+        // $accounts = Account::where('user_id', auth()->id())->select('id', 'account_title')->orderBy('id', 'desc')->get();
+        $accounts = Account::where('user_id', auth()->id())
+            ->select('id', 'account_title')
+            ->orderBy('account_title', 'asc')
+            ->get();
 
         // Fetch user's thresholds
         $userId = auth()->id();
         $thresholds = ExpenseCategoryThreshold::where('user_id', $userId)->get()->keyBy('expense_category_id');
-        return view('expense.create', compact('expenseCategories','accounts','thresholds'));
+        return view('expense.create', compact('expenseCategories', 'accounts', 'thresholds'));
     }
 
     /**
@@ -127,7 +131,8 @@ class ExpenseController extends Controller
 
 
 
-    public function store(Request $request){
+    public function store(Request $request)
+    {
         $this->validation($request);
 
         $itemsData = $request->input('expense_items', []); // Array of income records
@@ -135,48 +140,49 @@ class ExpenseController extends Controller
         $userId = auth()->id();
         $account = Account::findOrFail($request->account_id);
         $expenseDate = $request->expense_date;
-            DB::transaction(function () use ($itemsData, $userId, &$totalAmount, $expenseDate,$account) {
-                // Validate account existence once (outside the loop)
+        DB::transaction(function () use ($itemsData, $userId, &$totalAmount, $expenseDate, $account) {
+            // Validate account existence once (outside the loop)
 
-                foreach ($itemsData as $itemData) {
-                    $itemAmount = $itemData['amount'];
-                    $totalAmount += $itemAmount; // Increment the total amount for all incomes
+            foreach ($itemsData as $itemData) {
+                $itemAmount = $itemData['amount'];
+                $totalAmount += $itemAmount; // Increment the total amount for all incomes
 
-                    // Create an Income record
-                    $expense = Expense::create([
-                        'user_id' => $userId,
-                        'account_id' => $account->id,
-                        'income_date' => $expenseDate,
-                        'amount' => $itemAmount,
-                        'expense_category_id' => $itemData['expense_category_id'] ?? '',
-                        'description' => $itemData['description'] ?? '',
-                        'reason' => $itemData['reason'] ?? null, // Add reason field
-                        'created_by' => $userId,
-                    ]);
+                // Create an Income record
+                $expense = Expense::create([
+                    'user_id' => $userId,
+                    'account_id' => $account->id,
+                    'income_date' => $expenseDate,
+                    'amount' => $itemAmount,
+                    'expense_category_id' => $itemData['expense_category_id'] ?? '',
+                    'description' => $itemData['description'] ?? '',
+                    'reason' => $itemData['reason'] ?? null, // Add reason field
+                    'created_by' => $userId,
+                ]);
 
-                    // Create a Transaction record
-                    Transaction::create([
-                        'account_id' => $account->id,
-                        'reference_id' => $expense->id, // Reference the Income record
-                        'reference_type' => Expense::class, // Polymorphic relation
-                        'transaction_type' => 'expense',
-                        'amount' => $itemAmount,
-                        'description' => $itemData['description'] ?? '',
-                        'created_by' => $userId,
-                    ]);
-                }
+                // Create a Transaction record
+                Transaction::create([
+                    'account_id' => $account->id,
+                    'reference_id' => $expense->id, // Reference the Income record
+                    'reference_type' => Expense::class, // Polymorphic relation
+                    'transaction_type' => 'expense',
+                    'amount' => $itemAmount,
+                    'description' => $itemData['description'] ?? '',
+                    'created_by' => $userId,
+                ]);
+            }
 
-                // Update the account balances after all incomes are created
-                $account->increment('withdrawal', $totalAmount);
-                $account->decrement('balance', $totalAmount);
-                $account->decrement('total', $totalAmount);
+            // Update the account balances after all incomes are created
+            $account->increment('withdrawal', $totalAmount);
+            $account->decrement('balance', $totalAmount);
+            $account->decrement('total', $totalAmount);
         });
 
         return redirect()->route('expenses.index')
             ->with('success', trans('Expense added successfully, Total Amount: :total', ['total' => $totalAmount]));
     }
 
-    public function markImportant($id){
+    public function markImportant($id)
+    {
         $expense = Expense::findOrFail($id);
 
         // Check if a threshold already exists for this user and category
@@ -201,9 +207,9 @@ class ExpenseController extends Controller
 
         return redirect()->back()->with('success', 'Expense marked as important successfully.');
     }
-     
 
-     
+
+
 
 
     /**
@@ -214,12 +220,12 @@ class ExpenseController extends Controller
      */
     public function show(Expense $expense)
     {
-        return view('expense.show', compact('expense'));    
+        return view('expense.show', compact('expense'));
     }
 
     public function edit(Expense $expense)
     {
-        $expenseCategories = DdExpenseCategory::where('status','1')->select('id', 'title')->orderBy('id', 'desc')->get();
+        $expenseCategories = DdExpenseCategory::where('status', '1')->select('id', 'title')->orderBy('id', 'desc')->get();
 
         return view('expense.edit', compact('expense', 'expenseCategories'));
     }
@@ -243,19 +249,19 @@ class ExpenseController extends Controller
         ]);
 
         // Retrieve the updated data from the request
-        $data = $request->only(['account_id','expense_category_id', 'expense_date', 'amount', 'description']);
+        $data = $request->only(['account_id', 'expense_category_id', 'expense_date', 'amount', 'description']);
         $newAmount = $data['amount'];
         $oldAmount = $expense->amount;
         $difference = $newAmount - $oldAmount; // Calculate the difference
-    
+
         // Retrieve the associated account
         $account = Account::findOrFail($data['account_id']);
-        
+
         DB::transaction(function () use ($expense, $data, $difference, $account) {
             // Update the income record
             $data['updated_by'] = auth()->id();
             $expense->update($data);
-    
+
             // Update the transaction linked to this income
             $transaction = Transaction::where('reference_id', $expense->id)
                 ->where('transaction_type', 'expense')
@@ -267,21 +273,21 @@ class ExpenseController extends Controller
                 'description' => $data['description'] ?? '',
                 'updated_by' => auth()->id(),
             ]);
-    
+
             // Adjust the account balances based on the difference
             $account->increment('withdrawal', $difference);
             $account->decrement('balance', $difference);
             $account->decrement('total', $difference);
         });
-    
+
         return redirect()->route('expenses.edit', $expense->id)
             ->with('success', trans('Expense updated successfully'));
     }
-    
-    
-    
-    
-    
+
+
+
+
+
 
     /**
      * Remove the specified resource from storage.
@@ -299,10 +305,10 @@ class ExpenseController extends Controller
 
         // If deletion is allowed, revert account balances
         $account = $expense->account;
-        
+
         // The amount to be reverted
         $amount = $expense->amount;
-        
+
         // Decrement withdrawal (as the expense decreases the available funds)
         $account->decrement('withdrawal', $amount);  // Decrease withdrawal
         // Increment balance and total (as the funds are being returned)
@@ -310,22 +316,22 @@ class ExpenseController extends Controller
         $account->increment('total', $amount);       // Increase total
 
         Transaction::where('reference_id', $expense->id)
-        ->where('reference_type', Expense::class)
-        ->where('transaction_type', 'expense')
-        ->delete();
-        
+            ->where('reference_type', Expense::class)
+            ->where('transaction_type', 'expense')
+            ->delete();
+
         // Delete the expense record
         $expense->delete();
-    
+
         // Redirect back with success message
         return redirect()->route('expenses.index')
             ->with('success', trans('Expense deleted successfully.'));
     }
-    
+
 
     private function validation(Request $request, $id = 0)
     {
-    
+
         $request->validate([
             'account_id' => 'required|exists:accounts,id',
             'expense_date' => 'required|date',
@@ -336,5 +342,4 @@ class ExpenseController extends Controller
             'expense_items.*.description' => 'nullable|string',
         ]);
     }
-
 }
