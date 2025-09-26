@@ -48,7 +48,7 @@
                             <form action="" method="get" role="form" autocomplete="off">
                                 <input type="hidden" name="isFilterActive" value="true">
                                 <div class="row">
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-2">
                                         <div class="form-group">
                                             <label>@lang('Expense Category')</label>
                                             <select name="expense_category_id" class="form-control">
@@ -62,7 +62,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-2">
                                         <div class="form-group">
                                             <label>@lang('Amount')</label>
                                             <input type="text" name="amount" class="form-control" 
@@ -70,7 +70,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-2">
                                         <div class="form-group">
                                             <label for="month">@lang('Month')</label>
                                             <select id="month" name="month" class="form-control">
@@ -84,7 +84,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-2">
                                         <div class="form-group">
                                             <label>@lang('Start Date')</label>
                                             <input type="date" name="start_date" id="start_date"
@@ -93,7 +93,7 @@
                                                    value="{{ old('start_date', request()->start_date) }}">
                                         </div>
                                     </div>
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-2">
                                         <div class="form-group">
                                             <label>@lang('End Date')</label>
                                             <input type="date" name="end_date" id="end_date"
@@ -102,7 +102,7 @@
                                                    value="{{ old('end_date', request()->end_date) }}">
                                         </div>
                                     </div>
-                                    <div class="col-sm-4 align-content-center">
+                                    <div class="col-sm-2 align-content-center text-center">
                                         <button type="submit" class="btn btn-info mt-4">@lang('Submit')</button>
                                         @if (request()->isFilterActive)
                                             <a href="{{ route('budgets.index') }}" class="btn btn-secondary mt-4">@lang('Clear')</a>

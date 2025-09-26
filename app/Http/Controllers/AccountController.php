@@ -16,22 +16,17 @@ use App\Mail\ExceptionOccurred;
 
 class AccountController extends Controller
 {
-
     public function index(Request $request)
     {
-
         if ($request->export) {
             return $this->doExport($request);
         }
-
-
         $accounts = $this->filter($request)->orderBy('id', 'desc')->paginate(10);
         $accountTypes = DdAccountType::where('status', '1')->get();
-
         $assets = $accounts->where('balance', '>', 0)->sum('balance');
         $liabilities = $accounts->where('balance', '<', 0)->sum('balance');
-        $total = $accounts->sum('balance');
-
+        // $total = $accounts->sum('balance');
+        $total = (clone $accounts)->sum('balance');
         return view('accounts.index', compact('accounts', 'accountTypes', 'assets', 'liabilities', 'total'));
     }
 

@@ -20,11 +20,11 @@ class BudgetController extends Controller
             return $this->doExport($request);
         }
 
-        $budgetQuery = $this->filter($request)->with([ 'expenseCategory']);
-    
+        $budgetQuery = $this->filter($request)->with(['expenseCategory']);
+
         // Sum the amounts for the filtered budget records
         $total = $budgetQuery->sum('amount');
-    
+
         // Paginate the budget records
         $budgets = $budgetQuery->orderBy('month', 'desc')->paginate(10);
         $expenseCategories = DdExpenseCategory::all(); // Fetch categories
@@ -36,8 +36,8 @@ class BudgetController extends Controller
     public function doExport(Request $request)
     {
         // Fetch filtered budgets with eager-loaded relationships
-        $budgets = $this->filter($request)->with([ 'expenseCategory'])->get();
-    
+        $budgets = $this->filter($request)->with(['expenseCategory'])->get();
+
         // Prepare data for export
         $data = $budgets->map(function ($budget) {
             return [
@@ -48,23 +48,23 @@ class BudgetController extends Controller
                 'Month' => $budget->month ?? "-",
             ];
         })->toArray();
-    
+
         // Define headers for the export
         $headers = ['ID', 'Category', 'Description', 'Amount', 'Month'];
-    
+
         return Excel::download(new GenericExport($data, $headers), 'budgets.xlsx');
     }
 
     private function filter(Request $request)
     {
         $query = Budget::where('user_id', auth()->id());
-    
+
         // Filter by expense category
         if ($request->expense_category_id) {
             $query->where('expense_category_id', $request->expense_category_id);
         }
 
-    
+
         // Filter by month
         if ($request->month) {
             $query->where('month', $request->month);
@@ -91,7 +91,7 @@ class BudgetController extends Controller
 
     public function create()
     {
-        $expenseCategories = DdExpenseCategory::select('id', 'title')->orderBy('id', 'desc')->get();
+        $expenseCategories = DdExpenseCategory::select('id', 'title')->orderBy('title', 'asc')->get();
         return view('budget.create', compact('expenseCategories'));
     }
 
@@ -161,7 +161,7 @@ class BudgetController extends Controller
         ]);
 
         // Retrieve the updated data from the request
-        $data = $request->only([ 'expense_category_id', 'month', 'amount', 'description']);
+        $data = $request->only(['expense_category_id', 'month', 'amount', 'description']);
         DB::transaction(function () use ($budget, $data) {
             // Update the budget record
             $data['updated_by'] = auth()->id();

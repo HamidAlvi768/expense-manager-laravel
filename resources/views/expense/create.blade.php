@@ -228,7 +228,6 @@
                     <form id="expenseForm" data-parsley-validate class="form-material form-horizontal"
                         action="{{ route('expenses.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
-
                         <div class="account-date-container">
                             <div class="form-group">
                                 <label for="account_id">@lang('Account')</label>
@@ -249,9 +248,7 @@
                                 <span class="text-danger" id="expense_date_error"></span>
                             </div>
                         </div>
-
                         <hr>
-
                         <div class="table-responsive">
                             <table class="table table-bordered" id="expenseItemsTable">
                                 <thead>

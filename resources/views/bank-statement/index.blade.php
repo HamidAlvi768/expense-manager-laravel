@@ -20,7 +20,7 @@
                         <li class="breadcrumb-item active">@lang('Bank Statements')</li>
                         <li class="breadcrumb-item">
                             <a class="btn btn-sm btn-default" target="_blank" href="{{ request()->fullUrlWithQuery(['export' => 1]) }}">
-                                <i class="fas fa-cloud-download-alt"></i> @lang('Export')
+                                <i class="fas fa-cloud-download-alt"></i> @lang('Download Format')
                             </a>
                         </li>
                         <li class="breadcrumb-item">
@@ -46,7 +46,7 @@
                                 <input type="hidden" name="isFilterActive" value="true">
                                 <div class="row">
                                     <!-- Account Filter -->
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-3">
                                         <div class="form-group">
                                             <label>@lang('Account')</label>
                                             <select name="account_id" class="form-control">
@@ -60,23 +60,23 @@
                                             </select>
                                         </div>
                                     </div>
-                
+
                                     <!-- Uploaded Date Range -->
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-3">
                                         <div class="form-group">
                                             <label>@lang('Start Date')</label>
                                             <input type="date" name="start_date" class="form-control" value="{{ request()->start_date }}">
                                         </div>
                                     </div>
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-3">
                                         <div class="form-group">
                                             <label>@lang('End Date')</label>
                                             <input type="date" name="end_date" class="form-control" value="{{ request()->end_date }}">
                                         </div>
                                     </div>
-                
+
                                     <!-- Submit Button -->
-                                    <div class="col-sm-4 align-content-center">
+                                    <div class="col-sm-2 align-content-center text-center">
                                         <button type="submit" class="btn btn-info mt-4">@lang('Submit')</button>
                                         @if (request()->isFilterActive)
                                             <a href="{{ route('bank-statements.index') }}" class="btn btn-secondary mt-4">@lang('Clear')</a>
@@ -90,7 +90,7 @@
                     <table class="table table-striped" id="laravel_datatable">
                         <thead>
                             <tr>
-                             
+
                                 <th>@lang('Account')</th>
                                 <th>@lang('Incomes')</th>
                                 <th>@lang('Expenses')</th>
@@ -105,7 +105,7 @@
                         <tbody>
                             @foreach ($bankStatements as $bankStatement)
                                 <tr>
-                                    
+
                                     <td><span style="text-wrap:nowrap;">{{ $bankStatement->account->account_title ?? '-' }}</span></td>
                                     <td><span style="text-wrap:nowrap;">{{ isset($bankStatement->total_credits) ? formatAmount($bankStatement->total_credits) : '-' }}</span></td>
                                     <td><span style="text-wrap:nowrap;">{{ isset($bankStatement->total_debits) ? formatAmount($bankStatement->total_debits) : '-' }}</span></td>

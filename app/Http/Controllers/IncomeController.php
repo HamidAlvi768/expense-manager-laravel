@@ -13,6 +13,7 @@ use App\Models\Account;
 use App\Models\Transaction;
 use App\Models\Event;
 use Maatwebsite\Excel\Facades\Excel;
+
 class IncomeController extends Controller
 {
 
@@ -21,15 +22,15 @@ class IncomeController extends Controller
         if ($request->export) {
             return $this->doExport($request);
         }
-    
+
         $incomeQuery = $this->filter($request)->with(['account', 'incomeCategory']);
-    
+
         // Sum the amounts for the filtered income items
         $total = $incomeQuery->sum('amount');
-    
+
         // Paginate the income items
         $incomes = $incomeQuery->orderBy('income_date', 'desc')->paginate(10);
-        $incomeCategories = DdIncomeCategory::where('status','1')->get(); // Fetch categories
+        $incomeCategories = DdIncomeCategory::where('status', '1')->get(); // Fetch categories
         // Get only the categories used in the current page of incomes
         $usedCategoryIds = $incomes->pluck('income_category_id')->unique();
         $usedCategories = DdIncomeCategory::whereIn('id', $usedCategoryIds)->get();
@@ -38,14 +39,14 @@ class IncomeController extends Controller
         $categoryColors = getCategoryColors($usedCategories);
         $accounts = Account::where('user_id', auth()->id())->get();
 
-        return view('income.index', compact('incomes', 'total', 'incomeCategories','accounts','categoryColors','usedCategories'));
+        return view('income.index', compact('incomes', 'total', 'incomeCategories', 'accounts', 'categoryColors', 'usedCategories'));
     }
 
     public function doExport(Request $request)
     {
         // Fetch filtered incomes with eager-loaded relationships
         $incomes = $this->filter($request)->with(['account', 'incomeCategory'])->get();
-    
+
         // Prepare data for export
         $data = $incomes->map(function ($income) {
             return [
@@ -57,33 +58,33 @@ class IncomeController extends Controller
                 'Date' => $income->income_date ?? "-",
             ];
         })->toArray();
-    
+
         // Define headers for the export
         $headers = ['ID', 'Account', 'Category', 'Description', 'Amount', 'Date'];
-    
+
         return Excel::download(new GenericExport($data, $headers), 'incomes.xlsx');
     }
-    
+
 
     private function filter(Request $request)
     {
         $query = Income::where('user_id', auth()->id());
-    
+
         // Filter by account
         if ($request->account_id) {
             $query->where('account_id', $request->account_id);
         }
-    
+
         // Filter by income category
         if ($request->income_category_id) {
             $query->where('income_category_id', $request->income_category_id);
         }
-    
+
         // Filter by amount (partial match)
         if ($request->amount) {
             $query->where('amount', 'like', '%' . $request->amount . '%');
         }
-    
+
         // Filter by date range
         if ($request->start_date && $request->end_date) {
             // If both start_date and end_date are provided
@@ -99,21 +100,18 @@ class IncomeController extends Controller
             $endDate = Carbon::parse($request->end_date)->startOfDay();
             $query->whereDate('income_date', $endDate);
         }
-
-
-    
         return $query;
     }
-    
-    
-    
-    
+
+
+
+
     public function create()
     {
-        $incomeCategories = DdIncomeCategory::where('status','1')->select('id', 'title')->orderBy('id', 'desc')->get();
-        $accounts = Account::where('user_id', auth()->id())->select('id', 'account_title')->orderBy('id', 'desc')->get();
+        $incomeCategories = DdIncomeCategory::where('status', '1')->select('id', 'title')->orderBy('title', 'asc')->get();
+        $accounts = Account::where('user_id', auth()->id())->select('id', 'account_title')->orderBy('account_title', 'asc')->get();
         $users = User::select('id', 'name')->orderBy('id', 'desc')->get();
-        return view('income.create', compact('incomeCategories','users','accounts'));
+        return view('income.create', compact('incomeCategories', 'users', 'accounts'));
     }
 
     /**
@@ -124,77 +122,66 @@ class IncomeController extends Controller
      */
 
     public function store(Request $request)
-        {
+    {
         $this->validation($request);
-        
-        $itemsData = $request->input('income_items', []); // Array of income records
+        $itemsData = $request->input('income_items', []);
+        // Array of income records
         $totalAmount = 0; // Initialize total amount for all incomes
         $userId = auth()->id();
         $account = Account::findOrFail($request->account_id);
         $incomeDate = $request->income_date;
-            DB::transaction(function () use ($itemsData, $userId, &$totalAmount, $incomeDate,$account) {
-                // Validate account existence once (outside the loop)
-        
-                foreach ($itemsData as $itemData) {
-                    $itemAmount = $itemData['amount'];
-                    $totalAmount += $itemAmount; // Increment the total amount for all incomes
-        
-                    // Create an Income record
-                    $income = Income::create([
-                        'user_id' => $userId,
-                        'account_id' => $account->id,
-                        'income_date' => $incomeDate,
-                        'amount' => $itemAmount,
-                        'income_category_id' => $itemData['income_category_id'] ?? '',
-                        'description' => $itemData['description'] ?? '',
-                        'created_by' => $userId,
-                    ]);
-        
-                    // Create a Transaction record
-                    Transaction::create([
-                        'account_id' => $account->id,
-                        'reference_id' => $income->id, // Reference the Income record
-                        'reference_type' => Income::class, // Polymorphic relation
-                        'transaction_type' => 'income',
-                        'amount' => $itemAmount,
-                        'description' => $itemData['description'] ?? '',
-                        'created_by' => $userId,
-                    ]);
-                }
-        
-                // Update the account balances after all incomes are created
-                $account->increment('deposit', $totalAmount);
-                $account->increment('balance', $totalAmount);
-                $account->increment('total', $totalAmount);
+        DB::transaction(function () use ($itemsData, $userId, &$totalAmount, $incomeDate, $account) {
+            // Validate account existence once (outside the loop)
+            foreach ($itemsData as $itemData) {
+                $itemAmount = $itemData['amount'];
+                $totalAmount += $itemAmount; // Increment the total amount for all incomes
+                // Create an Income record
+                $income = Income::create([
+                    'user_id' => $userId,
+                    'account_id' => $account->id,
+                    'income_date' => $incomeDate,
+                    'amount' => $itemAmount,
+                    'income_category_id' => $itemData['income_category_id'] ?? '',
+                    'description' => $itemData['description'] ?? '',
+                    'created_by' => $userId,
+                ]);
+                // Create a Transaction record
+                Transaction::create([
+                    'account_id' => $account->id,
+                    'reference_id' => $income->id, // Reference the Income record
+                    'reference_type' => Income::class, // Polymorphic relation
+                    'transaction_type' => 'income',
+                    'amount' => $itemAmount,
+                    'description' => $itemData['description'] ?? '',
+                    'created_by' => $userId,
+                ]);
+            }
+
+            // Update the account balances after all incomes are created
+            $account->increment('deposit', $totalAmount);
+            $account->increment('balance', $totalAmount);
+            $account->increment('total', $totalAmount);
         });
 
         return redirect()->route('incomes.index')
             ->with('success', trans('Incomes added successfully, Total Amount: :total', ['total' => $totalAmount]));
     }
-     
-     
-     
-     
 
-     
-
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\income  $income
-     * @return \Illuminate\Http\Response
-     */
+    //  * Display the specified resource.
+    //  *
+    //  * @param  \App\Models\income  $income
+    //  * @return \Illuminate\Http\Response
+    //  */
     public function show(income $income)
     {
-        return view('income.show', compact('income'));    
+        return view('income.show', compact('income'));
     }
 
     public function edit(income $income)
     {
-        $incomeCategories = DdIncomeCategory::where('status','1')->select('id', 'title')->orderBy('id', 'desc')->get();
+        $incomeCategories = DdIncomeCategory::where('status', '1')->select('id', 'title')->orderBy('id', 'desc')->get();
         $users = User::select('id', 'name')->orderBy('id', 'desc')->get();
-        return view('income.edit', compact('income', 'incomeCategories','users'));
+        return view('income.edit', compact('income', 'incomeCategories', 'users'));
     }
 
     /**
@@ -216,19 +203,19 @@ class IncomeController extends Controller
         ]);
 
         // Retrieve the updated data from the request
-        $data = $request->only(['account_id','income_category_id', 'income_date', 'amount', 'description']);
+        $data = $request->only(['account_id', 'income_category_id', 'income_date', 'amount', 'description']);
         $newAmount = $data['amount'];
         $oldAmount = $income->amount;
         $difference = $newAmount - $oldAmount; // Calculate the difference
-    
+
         // Retrieve the associated account
         $account = Account::findOrFail($data['account_id']);
-        
+
         DB::transaction(function () use ($income, $data, $difference, $account) {
             // Update the income record
             $data['updated_by'] = auth()->id();
             $income->update($data);
-    
+
             // Update the transaction linked to this income
             $transaction = Transaction::where('reference_id', $income->id)
                 ->where('transaction_type', 'income')
@@ -240,21 +227,21 @@ class IncomeController extends Controller
                 'description' => $data['description'] ?? '',
                 'updated_by' => auth()->id(),
             ]);
-    
+
             // Adjust the account balances based on the difference
             $account->increment('deposit', $difference);
             $account->increment('balance', $difference);
             $account->increment('total', $difference);
         });
-    
+
         return redirect()->route('incomes.edit', $income->id)
             ->with('success', trans('Income updated successfully'));
     }
-    
-    
-    
-    
-    
+
+
+
+
+
 
     /**
      * Remove the specified resource from storage.
@@ -273,27 +260,27 @@ class IncomeController extends Controller
 
         // If deletion is allowed, revert account balances
         $account = $income->account;
-        
+
         // Decrement account fields (deposit, balance, total) by the income amount
         $amount = $income->amount;
-        
+
         $account->decrement('deposit', $amount); // Decrease deposit
         $account->decrement('balance', $amount); // Decrease balance
         $account->decrement('total', $amount);   // Decrease total
 
         Transaction::where('reference_id', $income->id)
-        ->where('transaction_type', 'income')
-        ->where('reference_type', Income::class)
-        ->delete();
-        
+            ->where('transaction_type', 'income')
+            ->where('reference_type', Income::class)
+            ->delete();
+
         // Delete the income record
         $income->delete();
-    
+
         // Redirect back with success message
         return redirect()->route('incomes.index')
             ->with('success', trans('Income deleted successfully.'));
     }
-    
+
 
     private function validation(Request $request, $id = 0)
     {
@@ -301,7 +288,7 @@ class IncomeController extends Controller
             // Parent income fields
             'account_id' => 'required|exists:accounts,id',
             'income_date' => 'required|date',
-    
+
             // Income items validation
             'income_items' => 'required|array|min:1', // Ensure at least one income item is provided
             'income_items.*.income_category_id' => 'required|exists:dd_income_categories,id',
@@ -309,6 +296,4 @@ class IncomeController extends Controller
             'income_items.*.description' => 'nullable|string',
         ]);
     }
-    
-
 }

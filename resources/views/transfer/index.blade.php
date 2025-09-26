@@ -46,7 +46,7 @@
                             <form action="" method="get" role="form" autocomplete="off">
                                 <input type="hidden" name="isFilterActive" value="true">
                                 <div class="row">
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-2">
                                         <div class="form-group">
                                             <label>@lang('From Account')</label>
                                             <select name="from_account" class="form-control">
@@ -60,7 +60,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-2">
                                         <div class="form-group">
                                             <label>@lang('To Account')</label>
                                             <select name="to_account" class="form-control">
@@ -74,35 +74,35 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-2">
                                         <div class="form-group">
                                             <label>@lang('Amount From')</label>
                                             <input type="text" name="amount_from" class="form-control"
                                                 value="{{ request()->amount_from }}" placeholder="e.g., 1000">
                                         </div>
                                     </div>
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-2">
                                         <div class="form-group">
                                             <label>@lang('Amount To')</label>
                                             <input type="text" name="amount_to" class="form-control"
                                                 value="{{ request()->amount_to }}" placeholder="e.g., 5000">
                                         </div>
                                     </div>
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-2">
                                         <div class="form-group">
                                             <label>@lang('Start Date')</label>
                                             <input type="date" name="start_date" class="form-control"
                                                 value="{{ request()->start_date }}">
                                         </div>
                                     </div>
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-2">
                                         <div class="form-group">
                                             <label>@lang('End Date')</label>
                                             <input type="date" name="end_date" class="form-control"
                                                 value="{{ request()->end_date }}">
                                         </div>
                                     </div>
-                                    <div class="col-sm-12">
+                                    <div class="col-sm-6 align-content-center mt-22">
                                         <button type="submit" class="btn btn-info">@lang('Submit')</button>
                                         @if (request()->isFilterActive)
                                             <a href="{{ route('transfers.index') }}" class="btn btn-secondary">@lang('Clear')</a>

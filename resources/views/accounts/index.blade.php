@@ -30,14 +30,14 @@
             </div>
         </div>
     </section>
-    
+
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-header bg-info">
                     <h3 class="card-title">
                         @lang('Accounts List') 
-                        <span class="badge badge-light ml-2">{{ formatAmount($total) }}</span>
+                        <span class="badge badge-light ml-2">{{formatAmount($total)}}</span>
                     </h3>                    
                 </div>
                 <div class="card-body">
@@ -46,14 +46,22 @@
                             <form action="" method="get" role="form" autocomplete="off">
                                 <input type="hidden" name="isFilterActive" value="true">
                                 <div class="row">
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-5">
                                         <div class="form-group">
                                             <label>@lang('Account Title')</label>
-                                            <input type="text" name="account_title" class="form-control"
-                                                value="{{ request()->account_title }}" placeholder="@lang('Account Title')">
+                                            {{-- <input type="text" name="account_title" class="form-control"
+                                                value="{{ request()->account_title }}" placeholder="@lang('Account Title')"> --}}
+                                                <select name="account_title" class="form-control">
+                                                    <option value="">@lang('Select Account')</option>
+                                                    @foreach($accounts as $account)
+                                                        <option value="{{ $account->account_title }}" {{ request()->account_title == $account->account_title ? 'selected' : '' }}>
+                                                            {{ $account->account_title }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
                                         </div>
                                     </div>
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-5">
                                         <div class="form-group">
                                             <label>@lang('Account Type')</label>
                                             <select name="account_type_id" class="form-control select2" style="width: 100%;">
@@ -67,15 +75,15 @@
                                             </select>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-sm-4 align-content-center">
-                                        <button type="submit" class="btn btn-info mt-4">@lang('Submit')</button>
-                                        @if (request()->isFilterActive)
-                                            <a href="{{ route('accounts.index') }}"
-                                                class="btn btn-secondary mt-4">@lang('Clear')</a>
-                                        @endif
-                                    </div>
+                                    {{-- <div class="row"> --}}
+                                        <div class="col-sm-2 align-content-center ">
+                                            <button type="submit" class="btn btn-info mt-4">@lang('Submit')</button>
+                                            @if (request()->isFilterActive)
+                                                <a href="{{ route('accounts.index') }}"
+                                                    class="btn btn-secondary mt-4">@lang('Clear')</a>
+                                            @endif
+                                        </div>
+                                    {{-- </div> --}}
                                 </div>
                             </form>
                         </div>
@@ -86,8 +94,8 @@
                                 <th>@lang('Account Title')</th>
                                 <th>@lang('Account Type')</th>
                                 <th>@lang('Deposit')</th>
-                                <th>@lang('Balance')</th>
                                 <th>@lang('Withdrawal')</th>
+                                <th>@lang('Balance')</th>
                                 <th>@lang('Total')</th>                                
                                 <th>@lang('Notes')</th>
                                 <th>@lang('Actions')</th>
@@ -99,8 +107,8 @@
                                     <td>{{ $account->account_title ?? '-' }}</td>
                                     <td>{{ $account->accountType->title ?? '-' }}</td>
                                     <td>{{ isset($account->deposit) ? formatAmount($account->deposit) : '-' }}</td>
-                                    <td>{{ isset($account->balance) ? formatAmount($account->balance) : '-' }}</td>
                                     <td>{{ isset($account->withdrawal) ? formatAmount($account->withdrawal) : '-' }}</td>
+                                    <td>{{ isset($account->balance) ? formatAmount($account->balance) : '-' }}</td>
                                     <td>{{ isset($account->total) ? formatAmount($account->total) : '-' }}</td>                                    
                                     <td>{{ $account->notes ?? '-' }}</td>
                                     <td style="text-align:end;">
@@ -109,13 +117,11 @@
                                             data-toggle="tooltip" title="@lang('View')">
                                             <i class="fa fa-eye ambitious-padding-btn"></i>
                                         </a>
-                                        
                                             <a href="{{ route('accounts.edit', $account) }}"
                                                 class="btn btn-info btn-outline btn-circle btn-lg"
                                                 data-toggle="tooltip" title="@lang('Edit')">
                                                 <i class="fa fa-edit ambitious-padding-btn"></i>
                                             </a>
-                                        
                                             <a href="#"
                                                 data-href="{{ route('accounts.destroy', $account) }}"
                                                 class="btn btn-info btn-outline btn-circle btn-lg"
