@@ -28,27 +28,27 @@ class BankStatementController extends Controller
         if ($request->export) {
             return $this->doExport($request);
         }
-    
+
         $bankStatements = $this->filter($request)
             ->with('account') // eager load the account relationship
             ->latest()
             ->paginate(10);
-        
+
         $accounts = Account::where('user_id', auth()->id())->get();
 
-    
-        return view('bank-statement.index', compact('bankStatements','accounts'));
+
+        return view('bank-statement.index', compact('bankStatements', 'accounts'));
     }
-    
+
     private function filter(Request $request)
     {
         $query = BankStatement::query();
-    
+
         // Filter by account
         if ($request->account_id) {
             $query->where('account_id', $request->account_id);
         }
-    
+
         // Filter by Date Range
         if ($request->start_date && $request->end_date) {
             // If both start_date and end_date are provided
@@ -67,17 +67,17 @@ class BankStatementController extends Controller
 
         $query->where('user_id', auth()->id());
 
-    
+
         return $query;
     }
-    
+
     public function doExport(Request $request)
     {
         // Retrieve filtered data
         $bankStatements = $this->filter($request)
             ->with('account') // eager load relationships
             ->get();
-    
+
         // Prepare data for export
         $data = $bankStatements->map(function ($bankStatement) {
             return [
@@ -90,13 +90,13 @@ class BankStatementController extends Controller
                 'Uploaded At' => $bankStatement->uploaded_at,
             ];
         })->toArray();
-    
+
         // Define headers for the export
         $headers = ['ID', 'Account', 'Total Credits', 'Total Debits', 'Credit Amount', 'Debit Amount', 'Uploaded At'];
-    
+
         return Excel::download(new GenericExport($data, $headers), 'bank-statements.xlsx');
     }
-    
+
 
     public function create()
     {
@@ -138,7 +138,6 @@ class BankStatementController extends Controller
             'created_by' => Auth::id(),
         ]);
 
-
         // Process CSV
         if ($request->bank_type === 'meezan') {
             $this->processMeezanCsv($bankStatement->file_path, $bankStatement);
@@ -146,11 +145,9 @@ class BankStatementController extends Controller
             $this->processHblCsv($bankStatement->file_path, $bankStatement);
         } elseif ($request->bank_type === 'habib_metro') {
             $this->processHabibMetroCsv($bankStatement->file_path, $bankStatement);
-        }elseif ($request->bank_type === 'allied') {
+        } elseif ($request->bank_type === 'allied') {
             $this->processAlliedBankCsv($bankStatement->file_path, $bankStatement);
         }
-
-
         return redirect()->route('bank-statements.index')->with('success', 'Bank statement uploaded and processed successfully.');
     }
 
@@ -160,10 +157,10 @@ class BankStatementController extends Controller
         if (!$handle) {
             throw new \Exception('Unable to open the CSV file.');
         }
-    
+
         $rows = [];
         $rowCount = 0;
-    
+
         while (($data = fgetcsv($handle)) !== false) {
             $rowCount++;
             // Skip the first 8 rows (headers or irrelevant data)
@@ -172,29 +169,29 @@ class BankStatementController extends Controller
             }
             $rows[] = $data;
         }
-    
+
         fclose($handle);
-    
+
         if (empty($rows)) {
             throw new \Exception('CSV file contains no valid rows.');
         }
-    
+
         $header = array_shift($rows); // Remove the header row
-    
+
         $requiredHeaders = ['Transaction Date', 'Description', 'Debit', 'Credit', 'Available Balance'];
         if ($header !== $requiredHeaders) {
             throw new \Exception('CSV headers do not match the expected format.');
         }
-    
+
         // Remove the last column (Available Balance) from each row
         $rows = array_map(function ($row) {
             return array_slice($row, 0, 4); // Keep only the first 4 columns
         }, $rows);
-    
+
         // Handle multi-line descriptions
         $transactions = [];
         $currentTransaction = null;
-    
+
         foreach ($rows as $row) {
             if (count(array_filter($row)) === 1 && !empty($row[1])) {
                 // If the row has only one non-empty column (Description), append it to the current transaction
@@ -209,29 +206,29 @@ class BankStatementController extends Controller
                 $currentTransaction = $row;
             }
         }
-    
+
         // Add the last transaction
         if ($currentTransaction) {
             $transactions[] = $currentTransaction;
         }
-    
+
         $totalDebits = 0;
         $totalCredits = 0;
         $debitCount = 0;
         $creditCount = 0;
-    
+
         foreach ($transactions as $transaction) {
             if (count($transaction) < 4) {
                 continue; // Skip incomplete rows
             }
-    
+
             [$transactionDate, $description, $debit, $credit] = $transaction;
-    
+
             // Parse transaction data
             $date = date('Y-m-d', strtotime($transactionDate));
             $debit = $debit ? floatval($debit) : null;
             $credit = $credit ? floatval($credit) : null;
-    
+
             // Record debit/credit logic
             if ($debit) {
                 $totalDebits += $debit;
@@ -243,7 +240,7 @@ class BankStatementController extends Controller
                 $this->processIncome($bankStatement, $date, $credit, $description);
             }
         }
-    
+
         // Update Bank Statement totals
         $bankStatement->update([
             'total_debits' => $debitCount,
@@ -252,17 +249,16 @@ class BankStatementController extends Controller
             'credit_amount' => $totalCredits,
         ]);
     }
-
     private function processHblCsv($filePath, BankStatement $bankStatement)
     {
         $handle = fopen(Storage::path($filePath), 'r');
         if (!$handle) {
             throw new \Exception('Unable to open the CSV file.');
         }
-    
+
         $rows = [];
         $rowCount = 0;
-    
+
         // Read CSV data
         while (($data = fgetcsv($handle)) !== false) {
             $rowCount++;
@@ -270,21 +266,21 @@ class BankStatementController extends Controller
             if ($rowCount === 1) {
                 continue;
             }
-    
+
             // Skip rows where the first three columns are null (irrelevant closing balances)
             if (empty(array_filter(array_slice($data, 0, 3)))) {
                 continue;
             }
-    
+
             $rows[] = $data;
         }
-    
+
         fclose($handle);
-    
+
         if (empty($rows)) {
             throw new \Exception('CSV file contains no valid rows.');
         }
-    
+
         // Reverse the rows to process the most recent transaction first (like Meezan CSV)
         $rows = array_reverse($rows);
 
@@ -292,27 +288,27 @@ class BankStatementController extends Controller
         $rows = array_map(function ($row) {
             return array_slice($row, 0, 4); // Keep only the first 4 columns
         }, $rows);
-    
+
         $totalDebits = 0;
         $totalCredits = 0;
         $debitCount = 0;
         $creditCount = 0;
-    
+
         foreach ($rows as $row) {
             if (count($row) < 4) {
                 continue; // Skip incomplete rows
             }
-    
+
             [$transactionDate, $description, $debit, $credit] = $row;
-    
+
             // Parse transaction data
             // Convert the date from MM/DD/YYYY to Y-m-d format
             $date = date('Y-m-d', strtotime(str_replace('/', '-', $transactionDate)));
-            
+
             // Handle the debit and credit values (strip commas if necessary)
             $debit = $debit ? floatval(str_replace(',', '', $debit)) : null;
             $credit = $credit ? floatval(str_replace(',', '', $credit)) : null;
-    
+
             // Record debit/credit logic
             if ($debit) {
                 $totalDebits += $debit;
@@ -324,7 +320,7 @@ class BankStatementController extends Controller
                 $this->processIncome($bankStatement, $date, $credit, $description);
             }
         }
-    
+
         // Update Bank Statement totals
         $bankStatement->update([
             'total_debits' => $debitCount,
@@ -334,7 +330,8 @@ class BankStatementController extends Controller
         ]);
     }
 
-    private function processHabibMetroCsv($filePath, BankStatement $bankStatement){
+    private function processHabibMetroCsv($filePath, BankStatement $bankStatement)
+    {
         $handle = fopen(Storage::path($filePath), 'r');
         if (!$handle) {
             throw new \Exception('Unable to open the CSV file.');
@@ -422,10 +419,10 @@ class BankStatementController extends Controller
         if (!$handle) {
             throw new \Exception('Unable to open the CSV file.');
         }
-    
+
         $rows = [];
         $rowCount = 0;
-    
+
         // Read CSV data
         while (($data = fgetcsv($handle)) !== false) {
             $rowCount++;
@@ -433,7 +430,7 @@ class BankStatementController extends Controller
             if ($rowCount === 1) {
                 continue;
             }
-    
+
             // Extract only the relevant columns: Date, Particulars, Debit, Credit
             $rows[] = [
                 $data[0], // Date
@@ -442,30 +439,30 @@ class BankStatementController extends Controller
                 $data[8], // Credit
             ];
         }
-    
+
         fclose($handle);
-    
+
         if (empty($rows)) {
             throw new \Exception('CSV file contains no valid rows.');
         }
-    
+
         $totalDebits = 0;
         $totalCredits = 0;
         $debitCount = 0;
         $creditCount = 0;
-    
+
         foreach ($rows as $row) {
             if (count($row) < 4) {
                 continue; // Skip incomplete rows
             }
-    
+
             [$transactionDate, $description, $debit, $credit] = $row;
-    
+
             // Parse transaction data
             $date = date('Y-m-d', strtotime($transactionDate));
             $debit = $debit ? floatval(str_replace(',', '', $debit)) : null;
             $credit = $credit ? floatval(str_replace(',', '', $credit)) : null;
-    
+
             // Record debit/credit logic
             if ($debit) {
                 $totalDebits += $debit;
@@ -477,7 +474,7 @@ class BankStatementController extends Controller
                 $this->processIncome($bankStatement, $date, $credit, $description);
             }
         }
-    
+
         // Update Bank Statement totals
         $bankStatement->update([
             'total_debits' => $debitCount,
@@ -489,10 +486,10 @@ class BankStatementController extends Controller
     private function processExpense(BankStatement $bankStatement, $date, $amount, $description)
     {
         $userId = Auth::id();
-    
+
         // Get or create the category based on the description
         $expenseCategoryId = $this->getOrCreateCategory($description, 'expense');
-    
+
         // Check for existing expense on the same date
         $expense = Expense::create([
             'account_id' => $bankStatement->account_id,
@@ -515,14 +512,17 @@ class BankStatementController extends Controller
             'description' => $description,
             'created_by' => $userId,
         ]);
-
+        $categoryTitle = $expense->expenseCategory->title ?? 'Miscellaneous';
+        $categoryId = $expense->expenseCategory->id ?? null;
         $eventData = [
             'user_id' => $userId,
-            'title' => 'Expense: ' . $expense->expenseCategory->title ?? '-',
+            // 'title' => 'Expense: ' . $expense->expenseCategory->title ?? '-',
+            'title' => 'Expense: ' . $categoryTitle,
             'description' => $description ?? '-',
             'amount' => $amount,
             'type' => 'expense',
-            'category_id' => $expense->expenseCategory->id,
+            // 'category_id' => $expense->expenseCategory->id,
+            'category_id' => $categoryId,
             'start_date' =>  $date,
             'end_date' =>  $date,
             'start_time' => '00:00:00', // Fixed start time
@@ -532,7 +532,7 @@ class BankStatementController extends Controller
         ];
         Event::Create($eventData);
 
-    
+
         $account = $bankStatement->account;
         $account->increment('withdrawal', $amount); // Increase withdrawal
         $account->decrement('balance', $amount);    // Decrease balance
@@ -542,10 +542,10 @@ class BankStatementController extends Controller
     private function processIncome(BankStatement $bankStatement, $date, $amount, $description)
     {
         $userId = Auth::id();
-    
+
         // Get or create the category based on the description
         $incomeCategoryId = $this->getOrCreateCategory($description, 'income');
-    
+
         // Create income record
         $income = Income::create([
             'account_id' => $bankStatement->account_id,
@@ -568,14 +568,17 @@ class BankStatementController extends Controller
             'description' => $description,
             'created_by' => $userId,
         ]);
-
+        $categoryTitle = $income->incomeCategory->title ?? 'Miscellaneous';
+        $categoryId = $income->incomeCategory->id ?? null;
         $eventData = [
             'user_id' => $userId,
-            'title' => 'Income: ' . $income->incomeCategory->title ?? '-',
+            // 'title' => 'Income: ' . $income->incomeCategory->title ?? '-',
+            'title' => 'Income: ' . $categoryTitle,
             'description' => $description ?? '-',
             'amount' => $amount,
             'type' => 'income',
-            'category_id' => $income->incomeCategory->id,
+            // 'category_id' => $income->incomeCategory->id,
+            'category_id' => $categoryId,
             'start_date' =>  $date,
             'end_date' =>  $date,
             'start_time' => '00:00:00', // Fixed start time
@@ -584,7 +587,7 @@ class BankStatementController extends Controller
             'created_by' => $userId,
         ];
         Event::Create($eventData);
-    
+
         // Update account fields
         $account = $bankStatement->account;
         $account->increment('deposit', $amount);    // Increase deposit
@@ -598,7 +601,7 @@ class BankStatementController extends Controller
             ->where('status', 1) // Active keywords only
             ->with(['category']) // Eager load categories
             ->get();
-    
+
         // Search for a keyword match in the description
         foreach ($keywords as $keyword) {
             if (stripos($description, $keyword->title) !== false) {
@@ -606,8 +609,8 @@ class BankStatementController extends Controller
                 return $keyword->category_id;
             }
         }
-    
+
         // Default fallback: "Miscellaneous" category
         return 1;
-    } 
+    }
 }

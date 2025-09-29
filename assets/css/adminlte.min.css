@@ -19955,9 +19955,11 @@ html.maximized-card {
     background: #fff;
     display: -ms-flexbox;
     display: flex;
+    justify-content: center;
+    align-items: center;
     margin-bottom: 1rem;
     min-height: 80px;
-    padding: .5rem;
+    padding: .3rem;
     position: relative
 }
 
@@ -19974,16 +19976,20 @@ html.maximized-card {
 .info-box .info-box-icon {
     border-radius: .25rem;
     -ms-flex-align: center;
-    align-items: center;
+    /* align-items: center; */
     display: -ms-flexbox;
     display: flex;
-    font-size: 1.875rem;
+    font-size: 1.8rem;
     -ms-flex-pack: center;
-    justify-content: center;
+    /* justify-content: center; */
     text-align: center;
-    width: 70px;
+    /* width: 50px; */
+    width: 45px;
     color: #17a2b8;
-    background: #e5f6f9;
+    /* background: #e5f6f9; */
+    /* background:red; */
+    /* background-color: #e5f6f9; */
+    
 }
 
 .info-box .info-box-icon>img {
@@ -19993,7 +19999,7 @@ html.maximized-card {
 .info-box .info-box-content {
     -ms-flex: 1;
     flex: 1;
-    padding: 5px 10px
+    padding: 5px 5px
 }
 
 .info-box .info-box-number {

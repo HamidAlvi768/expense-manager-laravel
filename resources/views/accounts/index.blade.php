@@ -4,7 +4,7 @@
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
-                <div class="col-sm-6">
+                <div class="col-sm-12">
                     <div class="d-flex align-items-center">
                         <h3 class="mb-0">
                             <a href="{{ route('accounts.create') }}" class="btn btn-outline btn-info">
@@ -21,12 +21,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-6">
+                {{-- <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">@lang('Dashboard')</a></li>
                         <li class="breadcrumb-item active">@lang('Accounts List')</li>
                     </ol>
-                </div>
+                </div> --}}
             </div>
         </div>
     </section>

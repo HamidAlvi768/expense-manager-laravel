@@ -51,13 +51,8 @@
                             <div class="form-group">
                                 <label class="col-md-3 col-form-label"></label>
                                 <div class="col-md-8">
-<<<<<<< HEAD
                                     <input type="submit" value="{{ __('Submit') }}" class="btn btn-outline btn-info btn-md"/>
                                     <a href="{{ route('marital-statuses.index') }}" class="btn btn-outline btn-warning btn-md">{{ __('Cancel') }}</a>
-=======
-                                    <input type="submit" value="{{ __('Submit') }}" class="btn btn-outline btn-info btn-lg"/>
-                                    <a href="{{ route('marital-statuses.index') }}" class="btn btn-outline btn-warning btn-lg">{{ __('Cancel') }}</a>
->>>>>>> 59200bb (Initial commit with expense manager code)
                                 </div>
                             </div>
                         </div>

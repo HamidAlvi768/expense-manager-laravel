@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -11,7 +12,7 @@
     <title>
         {{ $ApplicationSetting->item_short_name }}
         @if (isset($title) && !empty($title))
-            {{ " | ".$title }}
+            {{ " | " . $title }}
         @endif
     </title>
 
@@ -36,11 +37,11 @@
             align-items: center;
         }
 
-        .breadcrumb-item + .breadcrumb-item {
+        .breadcrumb-item+.breadcrumb-item {
             padding-left: 0.3rem;
         }
 
-        .breadcrumb-item + .breadcrumb-item::before {
+        .breadcrumb-item+.breadcrumb-item::before {
             padding-right: 0.3rem;
         }
 
@@ -57,7 +58,7 @@
             .content-header {
                 padding: 10px 0.5rem;
             }
-            
+
             .header-actions {
                 position: relative;
                 right: auto;
@@ -81,8 +82,18 @@
             }
 
             /* Keep headings slightly larger */
-            .card h1, .card h2, .card h3, .card h4, .card h5, .card h6,
-            .card .h1, .card .h2, .card .h3, .card .h4, .card .h5, .card .h6,
+            .card h1,
+            .card h2,
+            .card h3,
+            .card h4,
+            .card h5,
+            .card h6,
+            .card .h1,
+            .card .h2,
+            .card .h3,
+            .card .h4,
+            .card .h5,
+            .card .h6,
             .card .card-title {
                 font-size: 1rem;
             }
@@ -94,7 +105,9 @@
             }
 
             /* Keep form inputs readable */
-            .card input, .card select, .card textarea {
+            .card input,
+            .card select,
+            .card textarea {
                 font-size: 0.8rem !important;
             }
 
@@ -118,24 +131,26 @@
     <script src="{{ asset('assets/js/custom/fullcalendar.min.js') }}"></script>
     @stack('header')
 </head>
+
 <body class="hold-transition sidebar-mini layout-fixed">
-<div class="wrapper">
-    @include('layouts.header')
-    @include('layouts.sidebar')
-    <div class="content-wrapper">
-        <div class="content">
-            <div class="container-fluid">
-                @yield('content')
+    <div class="wrapper">
+        @include('layouts.header')
+        @include('layouts.sidebar')
+        <div class="content-wrapper">
+            <div class="content">
+                <div class="container-fluid">
+                    @yield('content')
+                </div>
             </div>
         </div>
+        @include('layouts.footer')
     </div>
-    @include('layouts.footer')
-</div>
-@include('thirdparty.js_back')
-@yield('one_page_js')
-@include('thirdparty.js_back_footer')
-@stack('footer')
-<script src="{{ URL::asset('assets\js\parsely.min.js') }}"></script>
+    @include('thirdparty.js_back')
+    @yield('one_page_js')
+    @include('thirdparty.js_back_footer')
+    @stack('footer')
+    <script src="{{ URL::asset('assets\js\parsely.min.js') }}"></script>
 
 </body>
+
 </html>
