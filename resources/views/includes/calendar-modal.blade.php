@@ -1,32 +1,38 @@
 <style>
-
-
     /* Event Creation Modal Styling */
     #eventCreateModal .modal-dialog {
-        max-width: 500px; /* Set a smaller max width for the modal */
-        margin: 30px auto; /* Center the modal */
+        max-width: 500px;
+        /* Set a smaller max width for the modal */
+        margin: 30px auto;
+        /* Center the modal */
     }
 
 
 
     /* Desktop styles */
     @media (min-width: 768px) {
-        
-        #eventCreateModal table.table td:first-child, #eventCreateModal table.table th:first-child {
+
+        #eventCreateModal table.table td:first-child,
+        #eventCreateModal table.table th:first-child {
             width: 2%;
         }
-        #eventCreateModal table.table td:nth-child(2), #eventCreateModal table.table th:nth-child(2) {
+
+        #eventCreateModal table.table td:nth-child(2),
+        #eventCreateModal table.table th:nth-child(2) {
             width: 1%;
         }
-        #eventCreateModal table.table td:last-child, #eventCreateModal table.table th:last-child {
-            text-align: unset; /* Align the text to the default value */
+
+        #eventCreateModal table.table td:last-child,
+        #eventCreateModal table.table th:last-child {
+            text-align: unset;
+            /* Align the text to the default value */
         }
 
         #eventCreateModal .modal-dialog {
             position: fixed;
             left: 30%;
             top: 2%;
-            
+
         }
 
         #calendarModal.modal {
@@ -37,178 +43,221 @@
             overflow-y: scroll;
         }
 
-        #eventCreateModal table.table td:first-child, #eventCreateModal table.table th:first-child {
-        width: 4%;
+        #eventCreateModal table.table td:first-child,
+        #eventCreateModal table.table th:first-child {
+            width: 4%;
         }
 
-        #eventCreateModal table.table td:nth-child(2), #eventCreateModal table.table th:nth-child(2) {
+        #eventCreateModal table.table td:nth-child(2),
+        #eventCreateModal table.table th:nth-child(2) {
             width: 1%;
         }
-        #eventCreateModal table.table td:last-child, #eventCreateModal table.table th:last-child {
-            text-align: unset; /* Align the text to the default value */
+
+        #eventCreateModal table.table td:last-child,
+        #eventCreateModal table.table th:last-child {
+            text-align: unset;
+            /* Align the text to the default value */
         }
     }
 
-/* Mobile styles */
-@media (max-width: 767.98px) {
-    #eventCreateModal .modal-dialog {
-        position: fixed;
-        left: 0%;
-        top: 0%;
-        width: 100%;
-        margin: 0;
-        top: 1% !important;
-        left: 10%;
+    /* Mobile styles */
+    @media (max-width: 767.98px) {
+        #eventCreateModal .modal-dialog {
+            position: fixed;
+            left: 0%;
+            top: 0%;
+            width: 100%;
+            margin: 0;
+            top: 1% !important;
+            left: 10%;
+        }
+
+        #calendarModal.modal {
+            padding: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #calendarModal .modal-dialog {
+            margin: 0;
+            max-width: 100%;
+            height: 100%;
+        }
+
+        #calendarModal .modal-content {
+            height: 100%;
+            border-radius: 0;
+        }
+
+        .modal-open .modal {
+            left: 0% !important;
+            width: 100% !important;
+
+        }
     }
 
-    #calendarModal.modal {
-        padding: 0;
-        top: 0;
-        left: 0;
-        right: 0;
-        width: 100%;
-        height: 100%;
-    }
-    
-    #calendarModal .modal-dialog {
-        margin: 0;
-        max-width: 100%;
-        height: 100%;
-    }
-    
-    #calendarModal .modal-content {
-        height: 100%;
-        border-radius: 0;
+    #eventCreateModal .modal-header {
+        font-size: 1.2rem;
+        /* Slightly larger font for the header */
     }
 
-    .modal-open .modal {
-        left: 0% !important;
-        width: 100% !important;
+    #eventCreateModal .modal-title {
+        font-weight: bold;
+        /* Make the title bold */
+    }
 
-}
-}
+    #eventCreateModal .modal-body {
+        padding: 15px;
+        /* Add some padding */
+    }
 
-#eventCreateModal .modal-header {
-    font-size: 1.2rem; /* Slightly larger font for the header */
-}
+    /* Form Group Styling */
+    #eventCreateModal .form-group {
+        margin-bottom: 10px;
+        /* Reduce bottom margin for form groups */
+    }
 
-#eventCreateModal .modal-title {
-    font-weight: bold; /* Make the title bold */
-}
+    /* Row Styling for Compact Layout */
+    #eventCreateModal .row {
+        margin-bottom: 0px;
+        /* Add some space between rows */
+        position: relative;
+        left: 2%;
+    }
 
-#eventCreateModal .modal-body {
-    padding: 15px; /* Add some padding */
-}
+    /* Adjust Column Widths */
+    #eventCreateModal .col-md-6 {
+        flex: 0 0 48%;
+        /* Set width to 48% for two columns */
+        max-width: 48%;
+        /* Ensure max width is 48% */
+    }
 
-/* Form Group Styling */
-#eventCreateModal .form-group {
-    margin-bottom: 10px; /* Reduce bottom margin for form groups */
-}
+    /* Button Styling */
+    #eventCreateModal .btn {
+        margin-top: 10px;
+        /* Add some space above buttons */
+    }
 
-/* Row Styling for Compact Layout */
-#eventCreateModal .row {
-    margin-bottom: 0px; /* Add some space between rows */
-    position: relative;
-    left: 2%;
-}
-
-/* Adjust Column Widths */
-#eventCreateModal .col-md-6 {
-    flex: 0 0 48%; /* Set width to 48% for two columns */
-    max-width: 48%; /* Ensure max width is 48% */
-}
-
-/* Button Styling */
-#eventCreateModal .btn {
-    margin-top: 10px; /* Add some space above buttons */
-}
     /* Calendar Event Styles */
     #eventCreateModal .fc-event {
-        background-color: rgba(0, 0, 0, 0.1) !important; /* Subtle transparent background */
-        border: none !important; /* Remove borders for cleaner look */
-        font-size: 0.7rem; /* Smaller text size for better fit */
-        text-align: center; /* Center align the title */
-        cursor: pointer; /* Show pointer on hover */
-        transition: all 0.2s ease-in-out; /* Smooth hover effect */
-        white-space: nowrap; /* Prevent text wrapping */
-        overflow: hidden; /* Hide overflowing text */
-        text-overflow: ellipsis; /* Add ellipsis to long titles */
+        background-color: rgba(0, 0, 0, 0.1) !important;
+        /* Subtle transparent background */
+        border: none !important;
+        /* Remove borders for cleaner look */
+        font-size: 0.7rem;
+        /* Smaller text size for better fit */
+        text-align: center;
+        /* Center align the title */
+        cursor: pointer;
+        /* Show pointer on hover */
+        transition: all 0.2s ease-in-out;
+        /* Smooth hover effect */
+        white-space: nowrap;
+        /* Prevent text wrapping */
+        overflow: hidden;
+        /* Hide overflowing text */
+        text-overflow: ellipsis;
+        /* Add ellipsis to long titles */
     }
 
     #eventCreateModal .fc-event:hover {
-        background-color: rgba(0, 0, 0, 0.2) !important; /* Slightly darken on hover */
-        transform: scale(1.05); /* Scale up slightly on hover */
+        background-color: rgba(0, 0, 0, 0.2) !important;
+        /* Slightly darken on hover */
+        transform: scale(1.05);
+        /* Scale up slightly on hover */
     }
 
     /* Event Title Styling */
     #eventCreateModal .fc-title {
-        font-size: 0.7rem !important; /* Further reduce font size for title */
-        white-space: nowrap; /* Prevent title wrapping */
-        overflow: hidden; /* Hide overflowing text */
-        text-overflow: ellipsis; /* Add ellipsis if the title is too long */
+        font-size: 0.7rem !important;
+        /* Further reduce font size for title */
+        white-space: nowrap;
+        /* Prevent title wrapping */
+        overflow: hidden;
+        /* Hide overflowing text */
+        text-overflow: ellipsis;
+        /* Add ellipsis if the title is too long */
         color: black;
     }
 
-/* Modal Styling */
-#eventCreateModal .modal-dialog {
-    max-width: 80%; /* Make modal wider on larger screens */
-    margin: 20px auto; /* Adjust margin */
-}
+    /* Modal Styling */
+    #eventCreateModal .modal-dialog {
+        max-width: 80%;
+        /* Make modal wider on larger screens */
+        margin: 20px auto;
+        /* Adjust margin */
+    }
 
-#eventCreateModal .modal-header {
-    font-size: 0.8rem; /* Smaller header font size */
-    padding: 10px; /* Reduce padding */
-}
+    #eventCreateModal .modal-header {
+        font-size: 0.8rem;
+        /* Smaller header font size */
+        padding: 10px;
+        /* Reduce padding */
+    }
 
-#eventCreateModal .modal-title {
-    font-size: 0.9rem; /* Smaller title font size */
-}
+    #eventCreateModal .modal-title {
+        font-size: 0.9rem;
+        /* Smaller title font size */
+    }
 
-#eventCreateModal .modal-body {
-    padding: 5px; /* Reduce padding */
-}
+    #eventCreateModal .modal-body {
+        padding: 5px;
+        /* Reduce padding */
+    }
 
 
-/* Transaction Table Styling */
-#eventCreateModal table.table {
-    width: 100%;
-    margin-bottom: 0;
-}
+    /* Transaction Table Styling */
+    #eventCreateModal table.table {
+        width: 100%;
+        margin-bottom: 0;
+    }
 
-#eventCreateModal table.table th, #eventCreateModal table.table td {
-    text-align: left;
-    padding: 4px; /* Reduce padding */
-    font-size: 0.85rem; /* Smaller font size */
-}
+    #eventCreateModal table.table th,
+    #eventCreateModal table.table td {
+        text-align: left;
+        padding: 4px;
+        /* Reduce padding */
+        font-size: 0.85rem;
+        /* Smaller font size */
+    }
 
-#eventCreateModal table.table th {
-    font-weight: bold;
-}
+    #eventCreateModal table.table th {
+        font-weight: bold;
+    }
 
-/* Column Specific Styling */
-#eventCreateModal table.table td:first-child,
-#eventCreateModal table.table th:first-child {
-    width: 40%; /* Adjust width for title */
-}
+    /* Column Specific Styling */
+    #eventCreateModal table.table td:first-child,
+    #eventCreateModal table.table th:first-child {
+        width: 40%;
+        /* Adjust width for title */
+    }
 
-#eventCreateModal table.table td:nth-child(2),
-#eventCreateModal table.table th:nth-child(2) {
-    width: 14%; /* Adjust width for amount */
-}
+    #eventCreateModal table.table td:nth-child(2),
+    #eventCreateModal table.table th:nth-child(2) {
+        width: 14%;
+        /* Adjust width for amount */
+    }
 
-#eventCreateModal table.table td:last-child,
-#eventCreateModal table.table th:last-child {
-    width: 30%; /* Adjust width for description */
-}
+    #eventCreateModal table.table td:last-child,
+    #eventCreateModal table.table th:last-child {
+        width: 30%;
+        /* Adjust width for description */
+    }
 
-/* Modal Footer Styling */
-#eventCreateModal .modal-footer {
-    padding: 5px; /* Reduce padding */
-    justify-content: center;
-}
+    /* Modal Footer Styling */
+    #eventCreateModal .modal-footer {
+        padding: 5px;
+        /* Reduce padding */
+        justify-content: center;
+    }
 
     /* Media Queries for Responsiveness */
     @media (max-width: 767px) {
+
         /* Adjust modal for smaller devices */
         #eventCreateModal .modal-dialog {
             width: 100%;
@@ -219,26 +268,33 @@
         /* Table Adjustments for Mobile */
         #eventCreateModal table.table th,
         #eventCreateModal table.table td {
-            font-size: 0.75rem; /* Smaller font size for mobile */
-            padding: 3px; /* Reduce padding */
+            font-size: 0.75rem;
+            /* Smaller font size for mobile */
+            padding: 3px;
+            /* Reduce padding */
         }
 
         #eventCreateModal table.table td:first-child,
         #eventCreateModal table.table th:first-child {
-            width: 45%; /* Adjust width for title */
+            width: 45%;
+            /* Adjust width for title */
         }
 
         #eventCreateModal table.table td:nth-child(2),
         #eventCreateModal table.table th:nth-child(2) {
-            width: 30%; /* Adjust width for amount */
+            width: 30%;
+            /* Adjust width for amount */
         }
 
         #eventCreateModal table.table td:last-child,
         #eventCreateModal table.table th:last-child {
-            width: 25%; /* Adjust width for description */
+            width: 25%;
+            /* Adjust width for description */
         }
     }
+
     @media (max-width: 576px) {
+
         /* Calendar Adjustments */
         #eventCreateModal #calendar {
             font-size: 0.75rem;
@@ -316,23 +372,27 @@
                     <input type="hidden" id="eventId" name="id">
                     <div class="form-group">
                         <label for="eventTitle">Title:</label>
-                        <input type="text" class="form-control" id="eventTitle" name="title" required data-parsley-required-message="Please enter a title.">
+                        <input type="text" class="form-control" id="eventTitle" name="title" required
+                            data-parsley-required-message="Please enter a title.">
                     </div>
                     <div class="form-group">
                         <label for="description">Description:</label>
-                        <textarea class="form-control" id="description" name="description" rows="3" required data-parsley-required-message="Please enter a description."></textarea>
+                        <textarea class="form-control" id="description" name="description" rows="3" required
+                            data-parsley-required-message="Please enter a description."></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="eventStartDate">Start Date:</label>
-                                <input type="date" class="form-control" id="eventStartDate" name="start_date" required data-parsley-required-message="Please select a start date.">
+                                <input type="date" class="form-control" id="eventStartDate" name="start_date" required
+                                    data-parsley-required-message="Please select a start date.">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="eventEndDate">End Date:</label>
-                                <input type="date" class="form-control" id="eventEndDate" name="end_date" required data-parsley-required-message="Please select an end date." data-parsley-date-end>
+                                <input type="date" class="form-control" id="eventEndDate" name="end_date" required
+                                    data-parsley-required-message="Please select an end date." data-parsley-date-end>
                             </div>
                         </div>
                     </div>
@@ -340,11 +400,13 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="eventStartTime">Start Time:</label>
-                                <select class="form-control select2" id="eventStartTime" name="start_time" required data-parsley-required-message="Please select a start time.">
+                                <select class="form-control select2" id="eventStartTime" name="start_time" required
+                                    data-parsley-required-message="Please select a start time.">
                                     <option value="" selected disabled>Select Start Time</option>
                                     @foreach (range(0, 23) as $hour)
                                         @foreach (range(0, 45, 15) as $minute)
-                                            <option value="{{ sprintf('%02d:%02d', $hour, $minute) }}">{{ sprintf('%02d:%02d', $hour, $minute) }}</option>
+                                            <option value="{{ sprintf('%02d:%02d', $hour, $minute) }}">
+                                                {{ sprintf('%02d:%02d', $hour, $minute) }}</option>
                                         @endforeach
                                     @endforeach
                                 </select>
@@ -353,20 +415,23 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="eventEndTime">End Time:</label>
-                                <select class="form-control select2" id="eventEndTime" name="end_time" required data-parsley-required-message="Please select an end time." data-parsley-time-end>
+                                <select class="form-control select2" id="eventEndTime" name="end_time" required
+                                    data-parsley-required-message="Please select an end time." data-parsley-time-end>
                                     <option value="" selected disabled>Select End Time</option>
                                     @foreach (range(0, 23) as $hour)
                                         @foreach (range(0, 45, 15) as $minute)
-                                            <option value="{{ sprintf('%02d:%02d', $hour, $minute) }}">{{ sprintf('%02d:%02d', $hour, $minute) }}</option>
+                                            <option value="{{ sprintf('%02d:%02d', $hour, $minute) }}">
+                                                {{ sprintf('%02d:%02d', $hour, $minute) }}</option>
                                         @endforeach
                                     @endforeach
                                 </select>
                             </div>
                         </div>
                     </div>
-                    
+
                     <button type="submit" id="save" class="btn btn-primary">Save Event</button>
-                    <button type="button" id="deleteEventButton" class="btn btn-danger" style="display: none;">Delete Event</button>
+                    <button type="button" id="deleteEventButton" class="btn btn-danger" style="display: none;">Delete
+                        Event</button>
                 </form>
             </div>
         </div>
@@ -375,7 +440,8 @@
 
 <!-- Event Creation Modal -->
 <!-- Event Creation Modal -->
-<div id="eventModal" class="modal fade" role="dialog" style="width: 67%; left: -4%; @media (max-width: 767.98px) { left: 0%;  }">
+<div id="eventModal" class="modal fade" role="dialog"
+    style="width: 67%; left: -4%; @media (max-width: 767.98px) { left: 0%;  }">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -421,7 +487,7 @@
         $('#eventCreateModal').on('hidden.bs.modal', function () {
             clearForm(); // Clear the form when the modal is hidden
         });
-        
+
         $('#calendar').fullCalendar({
             events: function (start, end, timezone, callback) {
                 var events = [];
@@ -512,7 +578,7 @@
                     $.ajax({
                         url: '{{ route('events.show', ':id') }}'.replace(':id', calEvent.id),
                         method: 'GET',
-                        success: function(event) {
+                        success: function (event) {
                             // Populate the modal with fetched event data
                             $('#eventId').val(event.id);
                             $('#eventTitle').val(event.title);
@@ -522,7 +588,7 @@
                             // Extract 'HH:mm' from 'HH:mm:ss' for both start and end times
                             let startTime = event.start_time.substring(0, 5); // 'HH:mm' format
                             let endTime = event.end_time.substring(0, 5); // 'HH:mm' format
-                            console.log(startTime,endTime);
+                            console.log(startTime, endTime);
                             // Set the selected values in the dropdown
                             $('#eventStartTime').val(startTime).trigger('change');  // Trigger change event to update dropdown
                             $('#eventEndTime').val(endTime).trigger('change');  // Trigger change event to update dropdown
@@ -532,7 +598,7 @@
                             // Show the modal for event editing
                             $('#eventCreateModal').modal('show');
                         },
-                        error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
                             console.error('Error fetching event details:', error);
                             alert('Could not fetch event details. Please try again.');
                         }
@@ -570,7 +636,7 @@
                     });
                 }
             },
-            dayClick: function(date) {
+            dayClick: function (date) {
                 // Show the event creation modal
                 $('#eventCreateModal').modal('show');
 
@@ -647,14 +713,14 @@
 
 
         // Add event deletion handler
-        $('#deleteEventButton').click(function() {
+        $('#deleteEventButton').click(function () {
             var eventId = $('#eventId').val();
             if (eventId) {
                 if (confirm('Are you sure you want to delete this event?')) {
                     $.ajax({
                         url: '{{ route('events.destroy', ':id') }}'.replace(':id', eventId),
                         method: 'DELETE',
-                        success: function(response) {
+                        success: function (response) {
                             // Handle success response
                             console.log(response);
                             // Refresh calendar
@@ -664,7 +730,7 @@
                             // Close modal
                             $('#eventCreateModal').modal('hide');
                         },
-                        error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
                             // Handle error
                             console.error('Error:', error);
                             alert('An error occurred while deleting the event. Please try again.');

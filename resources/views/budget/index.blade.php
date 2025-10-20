@@ -128,7 +128,19 @@
                                 <tr>
                                     <td>{{ $budget->expenseCategory->title ?? '-' }}</td>
                                     <td>{{ isset($budget->amount) ? formatAmount($budget->amount) : '-' }}</td>
-                                    <td>{{ \Carbon\Carbon::createFromFormat('m-y', $budget->month . '-01')->format('F') }}</td>
+                                    <td>
+                                    @if(!empty($budget->month) && is_numeric($budget->month))
+                                                                    {{ \Carbon\Carbon::createFromFormat(
+                                            'm-Y',
+                                            str_pad($budget->month, 2, '0', STR_PAD_LEFT) . '-' . \Carbon\Carbon::parse($budget->created_at)->format('Y')
+                                        )->format('F Y') }}
+                                    @else
+                                        {{ $budget->month ?? 'N/A' }}
+                                    @endif
+
+                                    </td>
+
+                                    {{-- <td>{{ \Carbon\Carbon::createFromFormat('m-y', $budget->month . '-01')->format('F') }}</td> --}}
                                     <td>{{ $budget->description ?? '-' }}</td>
                                     <td>
                                         <a href="{{ route('budgets.show', $budget->id) }}" class="btn btn-info btn-outline btn-circle btn-lg" data-toggle="tooltip" title="@lang('View')">

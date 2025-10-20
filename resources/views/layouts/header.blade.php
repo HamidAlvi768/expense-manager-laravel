@@ -1,22 +1,25 @@
 @include('includes.calendar-modal')
 
 <style>
-    .taskNotificationListHeader a{
-        font-size:12px;
-        padding-left:3px;
+    .taskNotificationListHeader a {
+        font-size: 12px;
+        padding-left: 3px;
         text-wrap: wrap;
     }
-    .taskNotificationListHeader a:hover{
-        background-color:#17a2b8;
-        color:#ffffff !important;
+
+    .taskNotificationListHeader a:hover {
+        background-color: #17a2b8;
+        color: #ffffff !important;
     }
-    .taskNotificationListHeader a:active{
-        background-color:#ffffff;
-        color:#17a2b8 !important;
+
+    .taskNotificationListHeader a:active {
+        background-color: #ffffff;
+        color: #17a2b8 !important;
     }
-    .taskNotificationListHeader ~a:hover {
-        background-color:#ffffff;
-        color:#17a2b8 !important;
+
+    .taskNotificationListHeader~a:hover {
+        background-color: #ffffff;
+        color: #17a2b8 !important;
     }
 </style>
 
@@ -25,19 +28,19 @@
 <nav class="main-header navbar navbar-expand navbar-white navbar-light">
     <ul class="navbar-nav">
         <li class="nav-item">
-            <a class="nav-link" data-widget="pushmenu" href="#" style="font-size: 1.2rem; bottom: 8%;"><i class="fas fa-bars"></i></a>
+            <a class="nav-link" data-widget="pushmenu" href="#" style="font-size: 1.2rem; bottom: 8%;"><i
+                    class="fas fa-bars"></i></a>
         </li>
     </ul>
     <ul class="navbar-nav ml-auto">
 
         <li class="nav-item">
-            <a data-bs-toggle="tooltip" data-bs-placement="right" title="Calender" data-toggle="modal"
-                data-target="#calendarModal">
+            <a data-bs-toggle="tooltip" data-bs-placement="right" title="Calender" data-bs-toggle="modal"
+                data-bs-target="#calendarModal">
                 <i class="fa fa-calendar"
                     style="font-size: 21px;color: #7f7f7f;margin-top: 7px;margin-right: 1rem;"></i>
             </a>
         </li>
-
 
         {{-- Commented On Purpose --}}
         {{-- <li class="nav-item dropdown">
@@ -46,24 +49,24 @@
                 aria-expanded="false">
                 <i class="fa fa-bell" style="font-size:21px"></i>
                 <span style="top:4px; position:absolute; left: 16px;" class="badge badge-pill badge-danger"
-                    id="notificationCount">{{ $notifications->where('status', 'new')->where('notification_to', Auth::user()->id)->count() }}</span>
+                    id="notificationCount">{{ $notifications->where('status', 'new')->where('notification_to',
+                    Auth::user()->id)->count() }}</span>
             </a>
             @if ($notifications)
-                <div style="display:none;" class="dropdown-menu notification-dd-container dropdown-menu-right"
-                    aria-labelledby="notificationDropdown" id="notificationDropdownMenu">
-                    @foreach ($notifications->sortByDesc('created_at') as $notification)
-                        @if (Auth::user()->id == $notification->notification_to)
-                            <a href="{{ url($notification->url) }}"
-                                class="dropdown-item {{ $notification->status == 'read' ? '' : 'unread' }}">
-                                <div
-                                    class="notification-item {{ $notification->status == 'read' ? 'its-read' : 'its-new' }}">
-                                    <p class="notification-title">{{ $notification->text }}</p>
-                                    <p class="notification-created_at">{{ $notification->created_at }}</p>
-                                </div>
-                            </a>
-                        @endif
-                    @endforeach
-                </div>
+            <div style="display:none;" class="dropdown-menu notification-dd-container dropdown-menu-right"
+                aria-labelledby="notificationDropdown" id="notificationDropdownMenu">
+                @foreach ($notifications->sortByDesc('created_at') as $notification)
+                @if (Auth::user()->id == $notification->notification_to)
+                <a href="{{ url($notification->url) }}"
+                    class="dropdown-item {{ $notification->status == 'read' ? '' : 'unread' }}">
+                    <div class="notification-item {{ $notification->status == 'read' ? 'its-read' : 'its-new' }}">
+                        <p class="notification-title">{{ $notification->text }}</p>
+                        <p class="notification-created_at">{{ $notification->created_at }}</p>
+                    </div>
+                </a>
+                @endif
+                @endforeach
+            </div>
             @endif
         </li> --}}
 
@@ -78,7 +81,8 @@
                 <div id="taskNotificationList" class="taskNotificationListHeader">
                 </div>
                 <div class="dropdown-divider"></div>
-                <a style="font-size:12px;" class="dropdown-item text-center " href="{{ route('tasks.index') }}">View All Tasks</a>
+                <a style="font-size:12px;" class="dropdown-item text-center " href="{{ route('tasks.index') }}">View All
+                    Tasks</a>
             </div>
         </li> --}}
         {{-- Commented On Purpose --}}
@@ -94,13 +98,15 @@
                 <b id="ambitious-user-name-id" class="hidden-xs">{{ strtok(Auth::user()->name, ' ') }}</b>
                 <span class="caret"></span>
             </a>
-            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="min-width: 200px !important; left:-150px; top:95%;">
+            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right"
+                style="min-width: 200px !important; left:-150px; top:95%;">
                 <div class="dw-user-box">
                     <div class="u-img"><img src="{{ asset($photo) }}" alt="user" /></div>
                     <div class="u-text">
                         <h4 style="font-size:13px;">{{ Auth::user()->name }}</h4>
                         <p class="text-muted custom-padding-bottom-5" style="font-size:11px;">
-                            {{ \Illuminate\Support\Str::limit(Auth::user()->email, 17) }}</p>
+                            {{ \Illuminate\Support\Str::limit(Auth::user()->email, 17) }}
+                        </p>
                         <a href="{{ route('profile.view') }}"
                             class="btn btn-rounded btn-danger btn-sm">{{ __('View Profile') }}</a>
                     </div>
@@ -130,7 +136,8 @@
 
 {{-- Commented On Purpose --}}
 
-{{-- <script>
+{{--
+<script>
     const markAllNotificationsAsReadUrl = "{{ route('notifications.readAll') }}";
     document.addEventListener('DOMContentLoaded', () => {
         const notificationDropdown = document.getElementById('notificationDropdown');
@@ -280,39 +287,40 @@
 
 {{-- Commented On Purpose --}}
 
-{{-- <script>
-    $(document).ready(function() {
+{{--
+<script>
+    $(document).ready(function () {
         // Function to fetch task notifications
-       function fetchTaskNotifications() {
-    $.ajax({
-        url: '{{ route('taskNotifications.fetch') }}',
-        type: 'GET',
-        success: function(data) {
-            let notifications = data.notifications;
-            // Sort notifications by date in descending order
-            notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            let notificationCount = data.countTaskNotification;
-            $('#taskNotificationCount').text(notificationCount);
-            let notificationList = '';
-            notifications.forEach(notification => {
-                let notificationClass = notification.status === 'new' ?
-                    'font-weight-bold' : 'text-muted';
-                notificationList += `
+        function fetchTaskNotifications() {
+            $.ajax({
+                url: '{{ route('taskNotifications.fetch') }}',
+                type: 'GET',
+                success: function (data) {
+                    let notifications = data.notifications;
+                    // Sort notifications by date in descending order
+                    notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    let notificationCount = data.countTaskNotification;
+                    $('#taskNotificationCount').text(notificationCount);
+                    let notificationList = '';
+                    notifications.forEach(notification => {
+                        let notificationClass = notification.status === 'new' ?
+                            'font-weight-bold' : 'text-muted';
+                        notificationList += `
                     <a class="dropdown-item ${notificationClass}" id="notification-${notification.id}" href="${notification.url}" onclick="handleNotificationClick(event, ${notification.id})">
                         ${notification.text}
                     </a>`;
+                    });
+                    $('#taskNotificationList').html(notificationList);
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error fetching notifications:', error);
+                }
             });
-            $('#taskNotificationList').html(notificationList);
-        },
-        error: function(xhr, status, error) {
-            console.error('Error fetching notifications:', error);
         }
-    });
-    }
 
 
         // Function to mark task notification as read
-        window.markTaskNotificationAsRead = function(notificationId) {
+        window.markTaskNotificationAsRead = function (notificationId) {
             $.ajax({
                 url: '{{ route('taskNotifications.markAsRead') }}',
                 type: 'POST',
@@ -320,14 +328,14 @@
                     _token: '{{ csrf_token() }}',
                     notificationId: notificationId
                 },
-                success: function() {
+                success: function () {
                     // Change the appearance of the read notification
                     $('#notification-' + notificationId).removeClass('font-weight-bold')
                         .addClass('text-muted');
                     // Update the notification count
                     updateNotificationCount();
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('Error marking notification as read:', error);
                 }
             });
@@ -342,7 +350,7 @@
         }
 
         // Function to handle notification click
-        window.handleNotificationClick = function(event, notificationId) {
+        window.handleNotificationClick = function (event, notificationId) {
             event.preventDefault(); // Prevent the default link behavior
             // Redirect to the notification URL
             window.location.href = $(`#notification-${notificationId}`).attr('href');
@@ -356,4 +364,3 @@
 </script> --}}
 
 {{-- Commented On Purpose --}}
-

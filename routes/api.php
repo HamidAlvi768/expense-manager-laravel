@@ -48,3 +48,19 @@ Route::get('budget-list', [MobileController::class, 'budgetList']);
 Route::post('add-expense-category', [MobileController::class, 'addExpenceCategory']);
 Route::post('add-income-category', [MobileController::class, 'addIncomeCategory']);
 Route::post('add-account-type', [MobileController::class, 'addAccountType']);
+Route::get('all-account', [MobileController::class, 'allAccount']);
+//list of catergories
+Route::get('list-expense-category', [MobileController::class, 'listExpenseCategory']);
+Route::get('list-income-category', [MobileController::class, 'listIncomeCategory']);
+//transfer felter
+Route::get('transfer-filter', [MobileController::class, 'transferSearch']);
+//income filter
+Route::get('income-filter', [MobileController::class, 'incomeSearch']);
+//expense filter
+Route::get('expense-filter', [MobileController::class, 'expenseSearch']);
+//account type
+Route::get('account-type', [MobileController::class, 'accountType']);
+//single api for the income account category accountType
+Route::get('list', [MobileController::class, 'list']);
+Route::post('keywords', [MobileController::class, 'keywords']);
+Route::get('keywords-list', [MobileController::class, 'keywordsList']);

@@ -13,6 +13,7 @@ use App\Models\Budget;
 use App\Models\DdExpenseCategory;
 use App\Models\DdIncomeCategory;
 use App\Models\DdAccountType;
+use App\Models\Keyword;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -54,7 +55,7 @@ class MobileController extends Controller
             if (Hash::check($password, $user->password)) {
                 $accessToken = Str::random(100);
                 $refreshToken = Str::random(100);
-                $tokenExpiry = Carbon::now()->addHour();
+                $tokenExpiry = Carbon::now()->addHour(24);
                 $user->access_token = $accessToken;
                 $user->refresh_token = $refreshToken;
                 $user->token_expiry = $tokenExpiry;
@@ -194,7 +195,7 @@ class MobileController extends Controller
             return response()->json(['status' => 'error', 'message' => 'User id is required'], 404);
         }
         $account = new Account();
-        $account_list = $account->with('accountType:id,title')->where('user_id', $user_id)->get();
+        $account_list = $account->with('accountType:id,title')->where('user_id', $user_id)->orderBy('created_at', 'desc')->get();
         if ($account_list->isEmpty()) {
             return response()->json(['status' => 'error', 'message' => 'No account found'], 404);
         }
@@ -233,7 +234,7 @@ class MobileController extends Controller
             }
             $user_id = $authUser->id;
             $account_title_id = $request->input('account_title_id');
-            $date = $request->input('date');
+            $date = date('Y-m-d', strtotime($request->input('date')));
             $income_category_id = $request->input('income_category_id');
             $amount = $request->input('amount');
             $description = $request->input('description');
@@ -255,12 +256,12 @@ class MobileController extends Controller
             }
 
             $income = Income::create([
-                'user_id'       => $user_id,
-                'account_id'    => $account_title_id,
-                'income_category_id'   => $income_category_id,
-                'amount'        => $amount,
-                'income_date'   => $date,
-                'description'   => $description
+                'user_id' => $user_id,
+                'account_id' => $account_title_id,
+                'income_category_id' => $income_category_id,
+                'amount' => $amount,
+                'income_date' => $date,
+                'description' => $description
             ]);
             $account->balance += $amount;
             $account->deposit += $amount;
@@ -287,53 +288,99 @@ class MobileController extends Controller
         }
     }
     //income list
+
     public function incomeList(Request $request)
     {
         try {
-            $authUser = $this->userAuth($request);
-            if (!$authUser) {
-                return [
+            // $authUser = $this->userAuth($request);
+            // if (!$authUser) {
+            //     return response()->json([
+            //         'status' => 'error',
+            //         'message' => 'User not authenticated',
+            //         'token' => $request->bearerToken()
+            //     ], 401);
+            // }
+            // $user_id = $authUser->id;
+            $user_id = $request->input('user_id');
+            if (is_null($user_id)) {
+                return response()->json(['status' => 'error', 'message' => 'User ID is required'], 404);
+            }
+
+            $query = Income::with('account:id,account_title', 'incomeCategory:id,title')
+                ->where('user_id', $user_id);
+
+            $hasFilters = collect([
+                'date_from',
+                'date_to',
+                'account_id',
+                'income_category_id',
+                'amount',
+                'description'
+            ])->contains(fn($key) => $request->filled($key));
+
+            if ($hasFilters) {
+                if (!empty($request->date_from) && !empty($request->date_to)) {
+                    $query->whereBetween('created_at', [$request->date_from, $request->date_to]);
+                } elseif (!empty($request->date_from)) {
+                    $query->whereDate('created_at', '>=', $request->date_from);
+                } elseif (!empty($request->date_to)) {
+                    $query->whereDate('created_at', '<=', $request->date_to);
+                }
+
+                if (!empty($request->account_id)) {
+                    $query->where('account_id', $request->account_id);
+                }
+
+                if (!empty($request->income_category_id)) {
+                    $query->where('income_category_id', $request->income_category_id);
+                }
+
+                if (!empty($request->amount)) {
+                    $query->where('amount', $request->amount);
+                }
+
+                if (!empty($request->description)) {
+                    $query->where('description', 'like', "%{$request->description}%");
+                }
+            }
+
+            $incomes = $query->get();
+
+            if ($incomes->isEmpty()) {
+                return response()->json([
                     'status' => 'error',
-                    'message' => 'User not authenticated',
-                    'token' => $request->bearerToken()
-                ];
+                    'message' => $hasFilters
+                        ? 'No income found for given filters'
+                        : 'No income records found'
+                ], 404);
             }
-            $user_id = $authUser->id;
-            if (is_Null($user_id)) {
-                return response()->json(['status' => 'error', 'message' => 'User id is required'], 404);
-            }
-            $incomeDetails = Income::with(
-                'account:id,account_title',
-                'incomeCategory:id,title'
-            )->where('user_id', $user_id)->get();
-            //fetch income list from database
-            $income_list = [];
-            foreach ($incomeDetails as $income) {
-                $income_list[] = [
+
+            $data = $incomes->map(function ($income) {
+                return [
                     'user_id' => $income->user_id,
-                    'account_title' => $income->account ? $income->account->account_title : null,
-                    'income_category' => $income->incomeCategory ? $income->incomeCategory->title : null,
+                    'account' => $income->account->account_title ?? null,
+                    'income_category' => $income->incomeCategory->title ?? null,
                     'amount' => $income->amount,
                     'description' => $income->description,
                     'income_date' => $income->income_date,
                 ];
-            }
+            });
 
-            return response()->json(
-                [
-                    'status' => 'success',
-                    'data' => $income_list
-                ]
-            );
+            return response()->json([
+                'status' => 'success',
+                'filters_applied' => $hasFilters,
+                'data' => $data
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => "something went wrong" . $e->getMessage(),
+                'message' => $e->getMessage(),
                 'line' => $e->getLine(),
                 'file' => $e->getFile()
             ], 500);
         }
     }
+
     //add expense 
     public function addExpense(Request $request)
     {
@@ -348,7 +395,8 @@ class MobileController extends Controller
             }
             $user_id = $authUser->id;
             $account_id = $request->input('account_id');
-            $date = $request->input('expense_date');
+            // $date = $request->input('expense_date');
+            $date = date('Y-m-d', strtotime($request->input('expense_date')));
             $expense_category_id = $request->input('expense_category_id');
             $amount = $request->input('amount');
             $description = $request->input('description');
@@ -393,12 +441,13 @@ class MobileController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => "something went wrong" + $e->getMessage(),
+                'message' => "something went wrong" . $e->getMessage(),
                 'line' => $e->getLine(),
                 'file' => $e->getFile()
             ], 500);
         }
     }
+
     public function expenseList(Request $request)
     {
         try {
@@ -410,38 +459,87 @@ class MobileController extends Controller
                     'token' => $request->bearerToken()
                 ], 401);
             }
+
             $user_id = $authUser->id;
-            if (is_Null($user_id)) {
-                return response()->json(['status' => 'error', 'message' => 'User id is required'], 404);
+            if (is_null($user_id)) {
+                return response()->json(['status' => 'error', 'message' => 'User ID is required'], 404);
             }
-            $expenseDetails = Expense::with('account:id,account_title', 'expenseCategory:id,title')->where('user_id', $user_id)->get();
-            //fetch expense list from database
-            $expense_list = []; //dummy data
-            foreach ($expenseDetails as $expense) {
-                $expense_list[] = [
+
+            $query = Expense::with('account:id,account_title', 'expenseCategory:id,title')
+                ->where('user_id', $user_id);
+
+            $hasFilters = collect([
+                'date_from',
+                'date_to',
+                'account_id',
+                'expense_category_id',
+                'amount',
+                'description'
+            ])->contains(fn($key) => $request->filled($key));
+
+            if ($hasFilters) {
+                if (!empty($request->date_from) && !empty($request->date_to)) {
+                    $query->whereBetween('created_at', [$request->date_from, $request->date_to]);
+                } elseif (!empty($request->date_from)) {
+                    $query->whereDate('created_at', '>=', $request->date_from);
+                } elseif (!empty($request->date_to)) {
+                    $query->whereDate('created_at', '<=', $request->date_to);
+                }
+
+                if (!empty($request->account_id)) {
+                    $query->where('account_id', $request->account_id);
+                }
+
+                if (!empty($request->expense_category_id)) {
+                    $query->where('expense_category_id', $request->expense_category_id);
+                }
+
+                if (!empty($request->amount)) {
+                    $query->where('amount', $request->amount);
+                }
+
+                if (!empty($request->description)) {
+                    $query->where('description', 'like', "%{$request->description}%");
+                }
+            }
+
+            $expenses = $query->get();
+
+            if ($expenses->isEmpty()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $hasFilters
+                        ? 'No expense found for given filters'
+                        : 'No expenses found'
+                ], 404);
+            }
+
+            $data = $expenses->map(function ($expense) {
+                return [
                     'user_id' => $expense->user_id,
-                    'account_title' => $expense->account ? $expense->account->account_title : null,
-                    'expense_category' => $expense->expenseCategory ? $expense->expenseCategory->title : null,
+                    'account' => $expense->account->account_title ?? null,
+                    'expense_category' => $expense->expenseCategory->title ?? null,
                     'amount' => $expense->amount,
                     'description' => $expense->description,
                     'expense_date' => $expense->expense_date,
                 ];
-            }
-            return response()->json(
-                [
-                    'status' => 'success',
-                    'data' => $expense_list
-                ]
-            );
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'filters_applied' => $hasFilters,
+                'data' => $data
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => "something went wrong" + $e->getMessage(),
+                'message' => $e->getMessage(),
                 'line' => $e->getLine(),
                 'file' => $e->getFile()
             ], 500);
         }
     }
+
     //transfer amount from one account to another
     public function transfer(Request $request)
     {
@@ -459,7 +557,9 @@ class MobileController extends Controller
             $to_account_id = $request->input('to_account_id');
             $amount = $request->input('amount');
             $description = $request->input('description');
-            $transfer_date = $request->input('transfer_date');
+            // $transfer_date = $request->input('transfer_date');
+            $transfer_date = date('Y-m-d', strtotime($request->input('transfer_date')));
+
 
             if (is_Null($from_account_id) || is_Null($to_account_id) || is_Null($amount) || is_Null($user_id)) {
                 return response()->json(['status' => 'error', 'message' => 'All fields are required'], 404);
@@ -514,7 +614,7 @@ class MobileController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => "something went wrong" + $e->getMessage(),
+                'message' => "something went wrong" . $e->getMessage(),
                 'line' => $e->getLine(),
                 'file' => $e->getFile()
             ], 500);
@@ -532,37 +632,89 @@ class MobileController extends Controller
                     'token' => $request->bearerToken()
                 ], 401);
             }
+
             $user_id = $authUser->id;
-            $transaction = Transfer::where('user_id', $user_id)->get();
-            $data = [];
-            foreach ($transaction as $transfer) {
-                $data[] = [
-                    'From' => $transfer->from_account_id,
-                    'To' => $transfer->to_account_id,
-                    'amount' => $transfer->transfer_amount,
-                    'notes' => $transfer->notes,
-                    'date' => $transfer->transfer_date
-                ];
+
+            $query = Transfer::with(['fromAccount', 'toAccount'])
+                ->where('user_id', $user_id);
+
+            $hasFilters = collect([
+                'date_from',
+                'date_to',
+                'from_account_id',
+                'to_account_id',
+                'amount',
+                'notes'
+            ])->contains(fn($key) => $request->filled($key));
+
+            if ($hasFilters) {
+                if (!empty($request->date_from) && !empty($request->date_to)) {
+                    $query->whereBetween('created_at', [$request->date_from, $request->date_to]);
+                } elseif (!empty($request->date_from)) {
+                    $query->whereDate('created_at', '>=', $request->date_from);
+                } elseif (!empty($request->date_to)) {
+                    $query->whereDate('created_at', '<=', $request->date_to);
+                }
+
+                if (!empty($request->from_account_id)) {
+                    $query->where('from_account_id', $request->from_account_id);
+                }
+
+                if (!empty($request->to_account_id)) {
+                    $query->where('to_account_id', $request->to_account_id);
+                }
+
+                if (!empty($request->amount)) {
+                    $query->where('transfer_amount', $request->amount);
+                }
+
+                if (!empty($request->notes)) {
+                    $query->where('notes', 'like', "%{$request->notes}%");
+                }
             }
-            if (!$transfer) {
+
+            $transactions = $query->get();
+
+            if ($transactions->isEmpty()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'No transfer exist'
+                    'message' => $hasFilters
+                        ? 'No transactions found for given filters'
+                        : 'No transfer records found',
                 ], 404);
             }
+
+            $data = [];
+            foreach ($transactions as $transaction) {
+                $data[] = [
+                    'user_id' => $transaction->user_id,
+                    'from_account_id' => $transaction->from_account_id,
+                    'from_account_name' => $transaction->fromAccount->account_title ?? 'N/A',
+                    'to_account_id' => $transaction->to_account_id,
+                    'to_account_name' => $transaction->toAccount->account_title ?? 'N/A',
+                    'transfer_amount' => $transaction->transfer_amount,
+                    'note' => $transaction->notes,
+                    'description' => $transaction->description,
+                    'transfer_date' => $transaction->transfer_date,
+                    'status' => $transaction->status,
+                ];
+            }
+
             return response()->json([
                 'status' => 'success',
-                'date' => $data
-            ], 202);
+                'data' => $data,
+                'filters_applied' => $hasFilters ? true : false
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => "something went wrong" + $e->getMessage(),
+                'message' => 'Something went wrong: ' . $e->getMessage(),
                 'line' => $e->getLine(),
                 'file' => $e->getFile()
             ], 500);
         }
     }
+
     //allocation of budget for specific month
     public function budgetAllocation(Request $request)
     {
@@ -633,7 +785,7 @@ class MobileController extends Controller
                 ->where('user_id', $user_id)->get();
             $data = [];
             foreach ($budget as $bg) {
-                $monthName = date("F", mktime(0, 0, 0, (int)$bg->month, 1));
+                $monthName = date("F", mktime(0, 0, 0, (int) $bg->month, 1));
                 $data[] = [
                     'user_id' => $user_id,
                     'category' => $bg->expenseCategory->title,
@@ -746,6 +898,362 @@ class MobileController extends Controller
                 'id' => $account->id,
                 'title' => $account->title
             ];
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "something went wrong" . $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ], 500);
+        }
+    }
+    public function allAccount(Request $request)
+    {
+        try {
+            $authUser = $this->userAuth($request);
+            if (!$authUser) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User not authenticated',
+                    'token' => $request->bearerToken()
+                ], 401);
+            }
+            $user_id = $authUser->id;
+            $accounts = Account::with('accountType')->where('user_id', $user_id)->get();
+            $data = [];
+            foreach ($accounts as $account) {
+                $data[] = [
+                    'user_id' => $user_id,
+                    'account' => $account->account_title,
+                    'account_type' => $account->accountType->title
+                ];
+            }
+            return response()->json([
+                'status' => 'succes',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "something went wrong" . $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ], 500);
+        }
+    }
+    public function listExpenseCategory(Request $request)
+    {
+        try {
+            $authUser = $this->userAuth($request);
+            if (!$authUser) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User not authenticated',
+                    'token' => $request->bearerToken()
+                ], 401);
+            }
+            $user_id = $authUser->id;
+            $expenses = DdExpenseCategory::all();
+            $data = [];
+            foreach ($expenses as $expense) {
+                $data[] = [
+                    'id' => $expense->id,
+                    'title' => $expense->title,
+                    'status' => $expense->status
+                ];
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return [
+                'status' => 'error',
+                'message' => "something went wrong" . $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ];
+        }
+    }
+    public function listIncomeCategory(Request $request)
+    {
+        try {
+            $authUser = $this->userAuth($request);
+            if (!$authUser) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User not authenticated',
+                    'token' => $request->bearerToken()
+                ], 401);
+            }
+            $user_id = $authUser->id;
+            $incomes = DdIncomeCategory::all();
+            $data = [];
+            foreach ($incomes as $income) {
+                $data[] = [
+                    'id' => $income->id,
+                    'title' => $income->title,
+                    'status' => $income->status
+                ];
+            }
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return [
+                'status' => 'error',
+                'message' => "something went wrong" . $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ];
+        }
+    }
+    public function transferSearch(Request $request)
+    {
+        try {
+            $authUser = $this->userAuth($request);
+            if (!$authUser) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User not authenticated',
+                    'token' => $request->bearerToken()
+                ], 401);
+            }
+            $user_id = $authUser->id;
+            $query = Transfer::query();
+            $query->where('user_id', $user_id);
+            // if ($request->has('user_id') && !empty($request->user_id)) {
+            //     $query->where('user_id', $request->user_id);
+            // } else {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'user_id required hai'
+            //     ]);
+            // }
+            if (!empty($request->date_from) && !empty($request->date_to)) {
+                $query->whereBetween('created_at', [$request->date_from, $request->date_to]);
+            } elseif (!empty($request->date_from)) {
+                $query->whereDate('created_at', '>=', $request->date_from);
+            } elseif (!empty($request->date_to)) {
+                $query->whereDate('created_at', '<=', $request->date_to);
+            }
+            if (!empty($request->from_account_id)) {
+                $query->where('from_account_id', $request->from_account_id);
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'select the account from'
+                ]);
+            }
+            if (!empty($request->to_account_id)) {
+                $query->where('to_account_id', $request->to_account_id);
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'select the account to'
+                ]);
+            }
+
+            if (!empty($request->amount)) {
+                $query->where('transfer_amount', $request->amount);
+            }
+            if (!empty($request->notes)) {
+                $query->where('notes', 'like', "%{$request->notes}%");
+            }
+            $transactions = $query->with(['fromAccount', 'toAccount'])->get();
+            $data = [];
+            foreach ($transactions as $transaction) {
+                $data[] = [
+                    'user_id' => $transaction->user_id,
+                    'fromAccount' => $transaction->fromAccount->account_title,
+                    'toAccount' => $transaction->toAccount->account_title,
+                    'transfer_ammount' => $transaction->transfer_amount,
+                    'note' => $transaction->notes,
+                    'description' => $transaction->description,
+                    'transfer_date' => $transaction->transfer_date,
+                    'status' => $transaction->status,
+                ];
+            }
+            if ($transactions->isEmpty()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No transactions found for given filters'
+                ]);
+            }
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+
+            ]);
+        }
+    }
+
+    public function accountType(Request $request)
+    {
+        try {
+            $accounts = DdAccountType::all();
+            if (!$accounts) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'no account type exist'
+                ]);
+            }
+            $data = [];
+            foreach ($accounts as $account) {
+                $data[] = [
+
+                    'account_type_id' => $account->id,
+                    'account_type' => $account->title,
+                ];
+            }
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                $e->getCode(),
+                $e->getLine()
+            ], 500);
+        }
+    }
+    public function list(Request $request)
+    {
+        try {
+            //income
+            // $user_id = $request->input('user_id');
+            $authUser = $this->userAuth($request);
+            if (!$authUser) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User not authenticated',
+                    'token' => $request->bearerToken()
+                ], 401);
+            }
+            $user_id = $authUser->id;
+            $accounts = Account::where('user_id', $user_id)->get();
+            $incomeCategory = DdIncomeCategory::get();
+            $expenseCategory = DdExpenseCategory::get();
+            $accountFrom = [];
+            $accountTo = [];
+            $income = [];
+            $expense = [];
+            $accountData = [];
+            foreach ($accounts as $account) {
+                $accountData[] = [
+                    'account_id' => $account->id,
+                    'account_title' => $account->account_title
+                ];
+            }
+            foreach ($incomeCategory as $category) {
+                $income[] = [
+                    'income_category_id' => $category->id,
+                    'income_category_title' => $category->title
+                ];
+            }
+            foreach ($expenseCategory as $exp) {
+                $expense[] = [
+                    'expense_category_id' => $exp->id,
+                    'expense_category_title' => $exp->title
+                ];
+            }
+            $accountFrom = $accountData;
+            $accountTo = $accountData;
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'account' => $accountData,
+                    'income_category' => $income,
+                    'expense_category' => $expense,
+                    'accountFrom' => $accountFrom,
+                    'accountTo' => $accountTo
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                $e->getCode(),
+                $e->getLine()
+            ], 500);
+        }
+    }
+    public function keywords(Request $request)
+    {
+        try {
+            $authUser = $this->userAuth($request);
+            if (!$authUser) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User not authenticated',
+                    'token' => $request->bearerToken()
+                ], 401);
+            }
+            $user_id = $authUser->id;
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'type' => 'required|string',
+                'category_id' => 'required|integer'
+            ]);
+            $keywords = Keyword::Create([
+                'title' => $validated['title'],
+                'type' => $validated['type'],
+                'category_id' => $validated['category_id'],
+            ]);
+            $data = [
+                'id' => $keywords->id,
+                'title' => $keywords->title,
+                'type' => $keywords->type,
+                'category_id' => $keywords->category_id
+            ];
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "something went wrong" . $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ], 500);
+        }
+    }
+    public function keywordsList(Request $request)
+    {
+        try {
+            $authUser = $this->userAuth($request);
+            if (!$authUser) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User not authenticated',
+                    'token' => $request->bearerToken()
+                ], 401);
+            }
+            $user_id = $authUser->id;
+            $keywords = Keyword::with('category')->get();
+            $data = [];
+            foreach ($keywords as $keyword) {
+                $data[] = [
+                    'id' => $keyword->id,
+                    'title' => $keyword->title,
+                    'type' => $keyword->type,
+                    'category_id' => $keyword->category_id,
+                    'category_title' => $keyword->category->title ?? null
+                ];
+            }
             return response()->json([
                 'status' => 'success',
                 'data' => $data

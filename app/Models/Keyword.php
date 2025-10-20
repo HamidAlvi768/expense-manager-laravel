@@ -25,4 +25,5 @@ class Keyword extends Model
             'category_id'
         );
     }
+   
 }

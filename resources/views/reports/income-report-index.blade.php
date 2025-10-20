@@ -42,7 +42,7 @@
             .desktop-header {
                 display: none;
             }
-            
+
             .mobile-header {
                 display: block;
             }
@@ -51,7 +51,7 @@
                 flex-direction: row;
                 gap: 10px;
             }
-            
+
             .mobile-form-row .form-group {
                 margin-bottom: 10px;
                 width: 1%;
@@ -75,7 +75,7 @@
             .mobile-header {
                 display: none;
             }
-            
+
             .desktop-header {
                 display: block;
             }
@@ -144,7 +144,7 @@
                     <h3 class="card-title">@lang('Income Report')</h3>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('income-report.index') }}" method="get">
+                    <form id="filter"  class="collapse" action="{{ route('income-report.index') }}" method="get">
                         <div class="mobile-form-container">
                             <!-- Date From and Date To -->
                             <div class="mobile-form-row">
@@ -209,7 +209,7 @@
                             <!-- Submit and Clear buttons -->
                             <div class="submit-container">
                                 <button type="submit" class="btn btn-info">@lang('Submit')</button>
-                                @if(request()->hasAny(['date_from', 'date_to', 'amount', 'account_id','income_category_id', 'description']))
+                                @if(request()->hasAny(['date_from', 'date_to', 'amount', 'account_id', 'income_category_id', 'description']))
                                     <a href="{{ route('income-report.index') }}" class="btn btn-secondary">@lang('Clear')</a>
                                 @endif
                             </div>
